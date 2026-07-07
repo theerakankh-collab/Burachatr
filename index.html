@@ -18,7 +18,7 @@
     <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <div>
             <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</h1>
-            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox หน้าชื่อภารกิจที่ต้องการ เพื่อแสดงผลการจัดผังกำลังพล</p>
+            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox หน้าภารกิจเพื่อแสดงผัง และสามารถกดตั้งค่าเพื่ออัปโหลดไฟล์ Excel ของผังนั้น ๆ ได้</p>
         </div>
         
         <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-gray-200">
@@ -55,47 +55,40 @@
     <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
             <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-1">📥 จัดการรายชื่อประจำผัง</h3>
-            <p class="text-xs text-gray-500 mb-3">รูปแบบข้อมูล: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่,ชื่อ-ตำแหน่ง,รหัสสี</span></p>
-            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+            
+            <div class="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200 mb-3">
+                <label class="block text-xs font-bold text-emerald-800 mb-1">📊 นำเข้าผ่านไฟล์ Excel (.xlsx, .xls):</label>
+                <input type="file" id="excel-file-input" accept=".xlsx, .xls" onchange="importExcelFile(event)" class="block w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer" />
+                <p class="text-[10px] text-emerald-700 mt-1">* ตั้งชื่อหัวตารางใน Excel เป็น: <span class="font-bold">หมายเลข</span>, <span class="font-bold">ชื่อ</span>, <span class="font-bold">สี</span></p>
+            </div>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink mx-4 text-gray-400 text-[10px] font-bold">หรือแก้ไขด้วยข้อความตรงนี้</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+
+            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[150px]"></textarea>
+            
             <div class="mt-4 flex justify-end gap-2">
                 <button onclick="toggleInputModal()" class="bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg">ยกเลิก</button>
-                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">นำเข้าข้อมูล</button>
+                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">บันทึกข้อมูล</button>
             </div>
         </div>
     </div>
 
     <script>
-        // รายชื่อผังภารกิจทั้งหมดที่กำหนดมาใหม่ (26 + 1 ผัง)
         const missionList = [
-            "ต้อนรับหน้าพระอนุสาวรีย์",
-            "สักการะพระอนุสาวรีย์",
-            "ถ่ายภาพหน้าพระอนุสาวรีย์",
-            "ต้อนรับหน้า บก.ส.1",
-            "รับเคารพจากแถวทหารต้อนรับ",
-            "ห้องบุรฉัตร",
-            "ห้องประชุม",
-            "ประดับเข็มบุรฉัตร อาคารอเนกประสงค์",
-            "ประดับเข็มบุรฉัตรห้องเกียรติยศ",
-            "ประดับยศ",
-            "รายงายตัวเข้า",
-            "รายงานตัวออก",
-            "ลาอุปสมบท",
-            "ถ่ายภาพหน้า สนง.",
-            "ลงนามสมุดเยี่ยม",
-            "เยี่ยมบุตรพิเศษ ส.1",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1",
-            "เยี่ยมบุตรพิเศษ ส.1 พัน.101",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.101",
-            "เยี่ยมบุตรพิเศษ ส.1 พัน.102",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.102",
-            "เยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
-            "เยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.",
-            "พิธีอื่นๆ(……)"
+            "ต้อนรับหน้าพระอนุสาวรีย์", "สักการะพระอนุสาวรีย์", "ถ่ายภาพหน้าพระอนุสาวรีย์",
+            "ต้อนรับหน้า บก.ส.1", "รับเคารพจากแถวทหารต้อนรับ", "ห้องบุรฉัตร", "ห้องประชุม",
+            "ประดับเข็มบุรฉัตร อาคารอเนกประสงค์", "ประดับเข็มบุรฉัตรห้องเกียรติยศ", "ประดับยศ",
+            "รายงายตัวเข้า", "รายงานตัวออก", "ลาอุปสมบท", "ถ่ายภาพหน้า สนง.", "ลงนามสมุดเยี่ยม",
+            "เยี่ยมบุตรพิเศษ ส.1", "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1", "เยี่ยมบุตรพิเศษ ส.1 พัน.101",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.101", "เยี่ยมบุตรพิเศษ ส.1 พัน.102", "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.102",
+            "เยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง", "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
+            "เยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.", "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.", "พิธีอื่นๆ(……)"
         ];
 
-        // ข้อมูลตัวอย่างสำหรับผังแรกสุด (ต้อนรับหน้าพระอนุสาวรีย์) หรือเมื่อกดตั้งค่าผังเปล่า
         const sampleBaseData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
 9,ผบ.พัน.ส.ชบช.เขตหลัง,#00a2e8
 8,เสธ.ส.1,#00a2e8
@@ -120,7 +113,6 @@
         const canvas = document.getElementById('canvas');
         const checkboxContainer = document.getElementById('checkbox-container');
 
-        // ฟังก์ชันแปลงข้อมูลข้อความเป็น Object พิกัดโครงสร้างการลากวาง
         function parseRawData(text, shiftFactor) {
             let startY = 40;
             return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
@@ -131,27 +123,19 @@
                     name: parts[1]?.trim() || '',
                     color: parts[2]?.trim() || '#00a2e8',
                     isPink: isPink,
-                    // ปรับกระจายจุด X/Y เริ่มต้นเล็กน้อยตามรหัสผัง เพื่อไม่ให้ซ้อนกันสนิทตอนกดเปิดดูพร้อมกัน
                     x: isPink ? 380 : 560 + (shiftFactor * 5 % 60),
                     y: (startY + (index * 42) + (shiftFactor * 5)) % 540
                 };
             });
         }
 
-        // วนลูปสร้างรายการเมนูฝั่งซ้ายของทั้ง 27 ผังภารกิจ
         missionList.forEach((missionName, index) => {
             const key = `mission_layout_${index + 1}`;
-            
-            // ตรวจสอบหรือสร้าง LocalStorage เริ่มต้นแยกเฉพาะของแต่ละภารกิจ
             if (!localStorage.getItem(key)) {
-                // ให้ผังที่ 1-4 มีข้อมูลตั้งต้นไว้ทดสอบ ส่วนผังอื่นๆ จะสแตนด์บายข้อมูลแถวเดียวไว้ก่อนเพื่อป้องกันการโหลดหนัก
-                const initialText = (index < 4) ? sampleBaseData : `1,เจ้าหน้าที่หลักภารกิจ (${missionName}),#70c14a`;
+                const initialText = (index < 1) ? sampleBaseData : `1,กำลังพลหลักภารกิจ (${missionName}),#70c14a`;
                 localStorage.setItem(key, JSON.stringify(parseRawData(initialText, index)));
             }
-
-            // ตัวเลือกเปิดเช็คบล็อก (กำหนดให้ติ๊กเลือกเปิดผังแรกไว้เป็น Default)
             const isChecked = index === 0 ? 'checked' : '';
-
             const row = document.createElement('div');
             row.className = "flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all";
             row.innerHTML = `
@@ -164,14 +148,12 @@
             checkboxContainer.appendChild(row);
         });
 
-        // ฟังก์ชันวาดซ้อนเลเยอร์ตำแหน่งกำลังพลลงบนบอร์ดตามตัวเลือก Checkbox
         function renderCanvas() {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                // ค้นหาชื่อภารกิจมาทำเป็น Tag ติดท้ายชื่อ
                 const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
                 const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "";
 
@@ -188,7 +170,7 @@
 
                     const label = document.createElement('div');
                     label.className = 'bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-lg shadow-xs border border-gray-200 text-[11px] font-bold text-gray-800 whitespace-nowrap';
-                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(${missionName.substring(0, 10)}...)</span>`;
+                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(${missionName.substring(0, 8)}...)</span>`;
 
                     if (person.isPink) {
                         container.appendChild(label); container.appendChild(square);
@@ -198,7 +180,6 @@
 
                     canvas.appendChild(container);
 
-                    // ระบบตรวจจับการลากจัดผังด้วยปลายนิ้วบน iPad
                     let isDragging = false; let startX, startY;
                     function startDrag(e) {
                         isDragging = true;
@@ -214,7 +195,6 @@
                         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                         let newX = clientX - startX; let newY = clientY - startY;
-                        
                         container.style.left = newX + 'px'; container.style.top = newY + 'px';
                         person.x = newX; person.y = newY;
                     }
@@ -234,6 +214,40 @@
             });
         }
 
+        // ฟังก์ชันระบบอ่านไฟล์ Excel และประมวลผลคำนวณตำแหน่ง
+        function importExcelFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // แปลงข้อมูลชีตออกมาเป็นคู่ Object array JSON
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                
+                if(jsonData.length === 0) {
+                    alert('ไม่พบข้อมูลรายชื่อในไฟล์ Excel หรือรูปแบบไฟล์ไม่ถูกต้อง');
+                    return;
+                }
+
+                // ดึงข้อมูลมาแปลงให้อยู่ในฟอร์แมตข้อความดิบเพื่อใส่ในกล่องข้อความ
+                let textFormatted = jsonData.map(row => {
+                    // ค้นหาคอลัมน์ไม่ว่าจะพิมพ์เล็กหรือพิมพ์ใหญ่
+                    const id = row['หมายเลข'] || row['id'] || row['ID'] || '';
+                    const name = row['ชื่อ'] || row['name'] || row['Name'] || '';
+                    const color = row['สี'] || row['color'] || row['Color'] || '#00a2e8';
+                    return `${id},${name},${color}`;
+                }).join('\n');
+
+                document.getElementById('raw-data-input').value = textFormatted;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
         function toggleAllCheckboxes(status) {
             checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = status);
             renderCanvas();
@@ -241,91 +255,52 @@
 
         function openEditModal(key, title) {
             activeEditKey = key;
-            document.getElementById('modal-target-title').innerText = `📥 ป้อนข้อมูล: ${title}`;
+            document.getElementById('excel-file-input').value = ""; // เคลียร์ไฟล์เก่าออก
+            document.getElementById('modal-target-title').innerText = `📥 จัดการข้อมูล: ${title}`;
             const data = JSON.parse(localStorage.getItem(key)) || [];
             document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
             document.getElementById('input-modal').classList.remove('hidden');
         }
+        
         function toggleInputModal() { document.getElementById('input-modal').classList.add('hidden'); }
+        
         function processInputData() {
             const txt = document.getElementById('raw-data-input').value;
             localStorage.setItem(activeEditKey, JSON.stringify(parseRawData(txt, 1)));
             toggleInputModal(); renderCanvas();
         }
 
-        // ================== ระบบประมวลผลเซฟดาวน์โหลดไฟล์ข้อมูล ==================
+        // ================== ระบบส่งออกไฟล์ตามเดิม ==================
         function getSelectedMissionsName() {
             const checkedCount = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked').length;
-            return checkedCount === 1 
-                ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim()
-                : `รวม_${checkedCount}_ภารกิจ`;
+            return checkedCount === 1 ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim() : `รวม_${checkedCount}_ภารกิจ`;
         }
-
-        function exportPNG() {
-            html2canvas(canvas, { scale: 2 }).then(img => {
-                const a = document.createElement('a'); a.download = `ผัง_${getSelectedMissionsName()}.png`;
-                a.href = img.toDataURL('image/png'); a.click();
-            });
-        }
-
-        function exportPDF() {
-            html2canvas(canvas, { scale: 1.5 }).then(imgCanvas => {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]);
-                pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight);
-                pdf.save(`ผังภารกิจ_${getSelectedMissionsName()}.pdf`);
-            });
-        }
-
+        function exportPNG() { html2canvas(canvas, { scale: 2 }).then(img => { const a = document.createElement('a'); a.download = `ผัง_${getSelectedMissionsName()}.png`; a.href = img.toDataURL('image/png'); a.click(); }); }
+        function exportPDF() { html2canvas(canvas, { scale: 1.5 }).then(imgCanvas => { const { jsPDF } = window.jspdf; const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]); pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight); pdf.save(`ผังภารกิจ_${getSelectedMissionsName()}.pdf`); }); }
         function exportExcel() {
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             const wb = XLSX.utils.book_new();
-            
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
                 const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
-                const fullMissionName = cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ";
-                // ตั้งชื่อ Tab Sheet ไม่ให้เกิน 30 ตัวอักษรตามมาตรฐาน Excel
-                const sheetName = fullMissionName.substring(0, 25);
-                
-                const rows = data.map(p => ({ "หมายเลข": p.id, "ชื่อ-ตำแหน่ง": p.name, "รหัสสี": p.color, "พิกัด X": p.x, "พิกัด Y": p.y }));
-                const ws = XLSX.utils.json_to_sheet(rows);
-                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                const ws = XLSX.utils.json_to_sheet(data.map(p => ({ "หมายเลข": p.id, "ชื่อ": p.name, "สี": p.color, "X": p.x, "Y": p.y })));
+                XLSX.utils.book_append_sheet(wb, ws, (cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ").substring(0, 25));
             });
-            XLSX.writeFile(wb, "รายงานผังพิกัดรายชื่อกำลังพล_ส1.xlsx");
+            XLSX.writeFile(wb, "รายงานผังรายชื่อกำลังพล_ส1.xlsx");
         }
-
         function exportWord() {
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             let combinedContent = "";
-
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
                 const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
-                const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ";
-                
                 let tableRows = data.map(p => `<tr><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:6px;">${p.name}</td><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.color}</td></tr>`).join('');
-                
-                combinedContent += `
-                    <h3>📌 รายชื่อกำลังพลประจำภารกิจ: ${missionName}</h3>
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:25px;">
-                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">ยศ นาม ตำแหน่ง</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสีประจำฝ่าย</th></tr></thead>
-                        <tbody>${tableRows}</tbody>
-                    </table><hr/>`;
+                combinedContent += `<h3>📌 ภารกิจ: ${cbElement ? cbElement.parentElement.innerText.trim() : ""}</h3><table style="width:100%;border-collapse:collapse;margin-bottom:25px;"><thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">ยศ นาม ตำแหน่ง</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสี</th></tr></thead><tbody>${tableRows}</tbody></table><hr/>`;
             });
-
-            const htmlContent = `
-                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><meta charset="utf-8"></head>
-                <body><h2>เอกสารรายงานบัญชีรายชื่อจัดผัง ส.1</h2>${combinedContent}</body>
-                </html>`;
-
-            const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = "รายงานจัดผังกำลังพลต้อนรับ.doc"; a.click();
+            const blob = new Blob(['\ufeff' + `<html><body><h2>เอกสารรายงานผัง ส.1</h2>${combinedContent}</body></html>`], { type: 'application/msword' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "รายงานผังกำลังพล.doc"; a.click();
         }
 
-        // เริ่มต้นรันประมวลผลกระดาน
         renderCanvas();
     </script>
 </body>
