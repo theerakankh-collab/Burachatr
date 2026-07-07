@@ -18,31 +18,48 @@
     <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <div>
             <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</h1>
-            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox หน้าภารกิจเพื่อแสดงผัง และสามารถกดตั้งค่าเพื่ออัปโหลดไฟล์ Excel ของผังนั้น ๆ ได้</p>
+            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox เพื่อจัดการผัง หรือใช้ระบบนำเข้า Excel ด้านขวาเพื่ออัปเดตข้อมูล</p>
         </div>
         
-        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-gray-200">
-            <span class="text-xs font-bold text-gray-600 ml-1">💾 ส่งออกผังที่เลือก:</span>
-            <button onclick="exportPNG()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">PNG</button>
-            <button onclick="exportPDF()" class="bg-red-700 hover:bg-red-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">PDF</button>
-            <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">Excel</button>
-            <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">Word</button>
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div class="bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 flex items-center gap-2">
+                <label class="text-xs font-bold text-emerald-800 whitespace-nowrap">📥 นำเข้า Excel:</label>
+                <input type="file" id="top-excel-input" accept=".xlsx, .xls" onchange="importExcelFromTop(event)" class="text-[11px] text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[11px] file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer max-w-[180px]" />
+            </div>
+
+            <div class="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-gray-200">
+                <span class="text-xs font-bold text-gray-500 mx-1">💾 ส่งออก:</span>
+                <button onclick="exportPNG()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow-sm">PNG</button>
+                <button onclick="exportPDF()" class="bg-red-700 hover:bg-red-800 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow-sm">PDF</button>
+                <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow-sm">Excel</button>
+                <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-2.5 py-1.5 rounded-lg shadow-sm">Word</button>
+            </div>
         </div>
     </div>
 
     <div class="flex-1 flex flex-col md:flex-row gap-3 overflow-hidden">
         
-        <div class="w-full md:w-96 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col overflow-y-auto shrink-0 shadow-sm">
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-sm font-bold text-gray-700 flex items-center gap-1">📋 รายการภารกิจ/พิธีการ</h2>
-                <div class="flex gap-2">
-                    <button onclick="toggleAllCheckboxes(true)" class="text-[10px] text-blue-600 font-bold hover:underline">เลือกทั้งหมด</button>
-                    <button onclick="toggleAllCheckboxes(false)" class="text-[10px] text-gray-400 font-bold hover:underline">ล้าง</button>
+        <div class="w-full md:w-96 flex flex-col gap-3 shrink-0 overflow-hidden">
+            <div class="flex-1 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col overflow-y-auto shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-sm font-bold text-gray-700 flex items-center gap-1">📋 รายการภารกิจ/พิธีการ</h2>
+                    <div class="flex gap-2">
+                        <button onclick="toggleAllCheckboxes(true)" class="text-[10px] text-blue-600 font-bold hover:underline">เลือกทั้งหมด</button>
+                        <button onclick="toggleAllCheckboxes(false)" class="text-[10px] text-gray-400 font-bold hover:underline">ล้าง</button>
+                    </div>
                 </div>
+                <div id="checkbox-container" class="space-y-1 flex-1 pr-1">
+                    </div>
             </div>
-            
-            <div id="checkbox-container" class="space-y-1 flex-1 pr-1">
+
+            <div id="mini-map-container" class="bg-slate-900 border border-slate-800 rounded-2xl p-3 h-48 flex flex-col shadow-md hidden">
+                <div class="text-[11px] font-bold text-slate-400 mb-1 flex justify-between items-center">
+                    <span>🗺️ ผังแสดงตำแหน่งขนาดเล็ก (Mini-Map)</span>
+                    <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">ย่อส่วน</span>
                 </div>
+                <div class="flex-1 bg-slate-950 rounded-lg relative overflow-hidden border border-slate-800" id="mini-map-canvas">
+                    </div>
+            </div>
         </div>
         
         <div id="canvas-container" class="flex-1 bg-white border border-gray-200 rounded-2xl relative overflow-hidden shadow-inner flex flex-col">
@@ -54,22 +71,9 @@
 
     <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
-            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-1">📥 จัดการรายชื่อประจำผัง</h3>
-            
-            <div class="mt-2 p-3 bg-emerald-50 rounded-xl border border-emerald-200 mb-3">
-                <label class="block text-xs font-bold text-emerald-800 mb-1">📊 นำเข้าผ่านไฟล์ Excel (.xlsx, .xls):</label>
-                <input type="file" id="excel-file-input" accept=".xlsx, .xls" onchange="importExcelFile(event)" class="block w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer" />
-                <p class="text-[10px] text-emerald-700 mt-1">* ตั้งชื่อหัวตารางใน Excel เป็น: <span class="font-bold">หมายเลข</span>, <span class="font-bold">ชื่อ</span>, <span class="font-bold">สี</span></p>
-            </div>
-
-            <div class="relative flex py-2 items-center">
-                <div class="flex-grow border-t border-gray-200"></div>
-                <span class="flex-shrink mx-4 text-gray-400 text-[10px] font-bold">หรือแก้ไขด้วยข้อความตรงนี้</span>
-                <div class="flex-grow border-t border-gray-200"></div>
-            </div>
-
-            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[150px]"></textarea>
-            
+            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-1">📥 จัดการข้อมูลรายชื่อ</h3>
+            <p class="text-xs text-gray-500 mb-3">รูปแบบข้อมูล: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่,ชื่อ-ตำแหน่ง,รหัสสี</span></p>
+            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[200px]"></textarea>
             <div class="mt-4 flex justify-end gap-2">
                 <button onclick="toggleInputModal()" class="bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg">ยกเลิก</button>
                 <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">บันทึกข้อมูล</button>
@@ -112,6 +116,8 @@
         let activeEditKey = "";
         const canvas = document.getElementById('canvas');
         const checkboxContainer = document.getElementById('checkbox-container');
+        const miniMapCanvas = document.getElementById('mini-map-canvas');
+        const miniMapContainer = document.getElementById('mini-map-container');
 
         function parseRawData(text, shiftFactor) {
             let startY = 40;
@@ -143,14 +149,28 @@
                     <input type="checkbox" value="${key}" ${isChecked} onchange="renderCanvas()" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 shrink-0">
                     <span class="break-words max-w-[180px] sm:max-w-none">${missionName}</span>
                 </label>
-                <button onclick="openEditModal('${key}', '${missionName}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1 shrink-0">⚙️ ตั้งค่า</button>
+                <button onclick="openEditModal('${key}', '${missionName}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1 shrink-0">⚙️ แก้ไข</button>
             `;
             checkboxContainer.appendChild(row);
         });
 
+        // ฟังก์ชันวาดหน้าจอหลัก ร่วมกับการประมวลผล Mini-Map ย่อส่วนแบบ Real-time
         function renderCanvas() {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
+            miniMapCanvas.innerHTML = ""; // เคลียร์จุดย่อส่วนเก่าออก
+            
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            // ซ่อน/แสดง บล็อก Mini-Map อัตโนมัติตามการติ๊กเลือก
+            if (checkedBoxes.length > 0) {
+                miniMapContainer.classList.remove('hidden');
+            } else {
+                miniMapContainer.classList.add('hidden');
+            }
+
+            // คำนวณอัตราส่วนการย่อสำหรับการวาด Mini-Map (สมมติกระดานจริงกว้างประมาณ 1000px ย่อเหลือพื้นที่แสดงผลจริง)
+            const scaleX = 0.22;
+            const scaleY = 0.22;
 
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
@@ -158,6 +178,7 @@
                 const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "";
 
                 data.forEach((person) => {
+                    // --- 1. วาดลงกระดานหลักด้านขวา ---
                     const container = document.createElement('div');
                     container.className = 'draggable flex items-center gap-2 select-none z-10 bg-white/40 rounded-xl p-0.5 border border-transparent hover:border-blue-500';
                     container.style.left = person.x + 'px';
@@ -170,16 +191,28 @@
 
                     const label = document.createElement('div');
                     label.className = 'bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-lg shadow-xs border border-gray-200 text-[11px] font-bold text-gray-800 whitespace-nowrap';
-                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(${missionName.substring(0, 8)}...)</span>`;
+                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(${missionName.substring(0, 6)}...)</span>`;
 
                     if (person.isPink) {
                         container.appendChild(label); container.appendChild(square);
                     } else {
                         container.appendChild(square); container.appendChild(label);
                     }
-
                     canvas.appendChild(container);
 
+                    // --- 2. วาดลงโครงสร้าง Mini-Map (ผังย่อส่วนไม่แสดงรายชื่อด้านใน) ---
+                    const dot = document.createElement('div');
+                    dot.className = "absolute rounded-md text-white flex items-center justify-center font-bold text-[8px] shadow-xs select-none pointer-events-none";
+                    dot.style.width = "16px";
+                    dot.style.height = "16px";
+                    dot.style.backgroundColor = person.color;
+                    // แปลงพิกัดสเกลย่อส่วนลงจอเล็ก
+                    dot.style.left = (person.x * scaleX) + 'px';
+                    dot.style.top = (person.y * scaleY) + 'px';
+                    dot.innerText = person.id; // แสดงเฉพาะรหัสหมายเลขลำดับ
+                    miniMapCanvas.appendChild(dot);
+
+                    // ระบบลากวางบน iPad
                     let isDragging = false; let startX, startY;
                     function startDrag(e) {
                         isDragging = true;
@@ -197,6 +230,10 @@
                         let newX = clientX - startX; let newY = clientY - startY;
                         container.style.left = newX + 'px'; container.style.top = newY + 'px';
                         person.x = newX; person.y = newY;
+
+                        // เลื่อนจุด Mini-Map ตามการลากแบบเรียลไทม์
+                        dot.style.left = (newX * scaleX) + 'px';
+                        dot.style.top = (newY * scaleY) + 'px';
                     }
                     function stopDrag() {
                         if(!isDragging) return;
@@ -214,10 +251,26 @@
             });
         }
 
-        // ฟังก์ชันระบบอ่านไฟล์ Excel และประมวลผลคำนวณตำแหน่ง
-        function importExcelFile(event) {
+        // 🟢 ฟังก์ชันนำเข้าข้อมูล Excel ผ่านแถบด้านบนสุด
+        function importExcelFromTop(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // ตรวจสอบว่าในปัจจุบันผู้ใช้เลือกผังใดอยู่ (เลือกผังแรกที่ติ๊กถูก)
+            const activeCheckbox = checkboxContainer.querySelector('input[type="checkbox"]:checked');
+            if(!activeCheckbox) {
+                alert('กรุณาติ๊กเลือกเครื่องหมายถูกหน้าผังภารกิจที่ต้องการนำเข้าข้อมูลก่อนครับ!');
+                event.target.value = ''; // ล้างไฟล์ออก
+                return;
+            }
+
+            const targetLayoutKey = activeCheckbox.value;
+            const targetMissionName = activeCheckbox.parentElement.innerText.trim();
+
+            if(!confirm(`คุณต้องการนำเข้าข้อมูล Excel นี้ลงในผัง "${targetMissionName}" ใช่หรือไม่?`)) {
+                event.target.value = '';
+                return;
+            }
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -225,25 +278,26 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
-                
-                // แปลงข้อมูลชีตออกมาเป็นคู่ Object array JSON
                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
                 
                 if(jsonData.length === 0) {
-                    alert('ไม่พบข้อมูลรายชื่อในไฟล์ Excel หรือรูปแบบไฟล์ไม่ถูกต้อง');
+                    alert('ไม่พบข้อมูลรายชื่อในไฟล์ Excel หรือหัวตารางไม่ถูกต้อง');
                     return;
                 }
 
-                // ดึงข้อมูลมาแปลงให้อยู่ในฟอร์แมตข้อความดิบเพื่อใส่ในกล่องข้อความ
-                let textFormatted = jsonData.map(row => {
-                    // ค้นหาคอลัมน์ไม่ว่าจะพิมพ์เล็กหรือพิมพ์ใหญ่
+                // ดึงข้อมูลจัดเข้าฟอร์แมต
+                const textFormatted = jsonData.map(row => {
                     const id = row['หมายเลข'] || row['id'] || row['ID'] || '';
                     const name = row['ชื่อ'] || row['name'] || row['Name'] || '';
                     const color = row['สี'] || row['color'] || row['Color'] || '#00a2e8';
                     return `${id},${name},${color}`;
                 }).join('\n');
 
-                document.getElementById('raw-data-input').value = textFormatted;
+                // บันทึกเข้าฐานข้อมูลผังนั้นโดยตรงและเรนเดอร์ใหม่
+                localStorage.setItem(targetLayoutKey, JSON.stringify(parseRawData(textFormatted, 1)));
+                renderCanvas();
+                alert(`นำเข้าข้อมูลลงผัง "${targetMissionName}" เรียบร้อยแล้วครับ!`);
+                event.target.value = ''; // เคลียร์ช่องอินพุต
             };
             reader.readAsArrayBuffer(file);
         }
@@ -255,7 +309,6 @@
 
         function openEditModal(key, title) {
             activeEditKey = key;
-            document.getElementById('excel-file-input').value = ""; // เคลียร์ไฟล์เก่าออก
             document.getElementById('modal-target-title').innerText = `📥 จัดการข้อมูล: ${title}`;
             const data = JSON.parse(localStorage.getItem(key)) || [];
             document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
@@ -270,11 +323,8 @@
             toggleInputModal(); renderCanvas();
         }
 
-        // ================== ระบบส่งออกไฟล์ตามเดิม ==================
-        function getSelectedMissionsName() {
-            const checkedCount = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked').length;
-            return checkedCount === 1 ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim() : `รวม_${checkedCount}_ภารกิจ`;
-        }
+        // ================== ระบบส่งออกรายงาน ==================
+        function getSelectedMissionsName() { const checkedCount = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked').length; return checkedCount === 1 ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim() : `รวม_${checkedCount}_ภารกิจ`; }
         function exportPNG() { html2canvas(canvas, { scale: 2 }).then(img => { const a = document.createElement('a'); a.download = `ผัง_${getSelectedMissionsName()}.png`; a.href = img.toDataURL('image/png'); a.click(); }); }
         function exportPDF() { html2canvas(canvas, { scale: 1.5 }).then(imgCanvas => { const { jsPDF } = window.jspdf; const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]); pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight); pdf.save(`ผังภารกิจ_${getSelectedMissionsName()}.pdf`); }); }
         function exportExcel() {
