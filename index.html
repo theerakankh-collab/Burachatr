@@ -3,214 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>โปรแกรมจัดผังต้อนรับ บก.ส.1 (12 ผังพื้นที่)</title>
+    <title>ระบบบริหารจัดการผังต้อนรับ ส.1 (12 ผัง)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        body { touch-action: none; overflow: hidden; }
-        .draggable { touch-action: none; position: absolute; cursor: move; }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body class="bg-slate-100 w-screen h-screen flex flex-col p-4 font-sans select-none">
 
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <div>
-            <h1 id="layout-title" class="text-lg font-bold text-gray-800">ผังการต้อนรับ บริเวณ หน้า บก.ส.1 (ผังที่ 1)</h1>
-            <p class="text-xs text-gray-500">เลือกผังที่ต้องการจากเมนูด้านขวา (รองรับ 12 ผัง) ลากวางบล็อกสี่เหลี่ยมเพื่อจัดตำแหน่งได้อิสระ</p>
+            <h1 id="layout-title" class="text-xl font-bold text-gray-800">ระบบจัดผังพื้นที่ (12 ผัง)</h1>
+            <p class="text-xs text-gray-500 mt-1">รับข้อมูล ประมวลผลพิกัดลากวาง และส่งออกรายงานในรูปแบบดิจิทัล</p>
         </div>
         
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-            <label for="layout-select" class="text-xs font-bold text-gray-600 whitespace-nowrap">📍 เลือกพื้นที่:</label>
-            <select id="layout-select" onchange="switchLayout(this.value)" class="bg-slate-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-56 p-2 font-semibold">
-                <option value="area1">ผังที่ 1 (หน้า บก.ส.1)</option>
-                <option value="area2">ผังที่ 2</option>
-                <option value="area3">ผังที่ 3</option>
-                <option value="area4">ผังที่ 4</option>
-                <option value="area5">ผังที่ 5</option>
-                <option value="area6">ผังที่ 6</option>
-                <option value="area7">ผังที่ 7</option>
-                <option value="area8">ผังที่ 8</option>
-                <option value="area9">ผังที่ 9</option>
-                <option value="area10">ผังที่ 10</option>
-                <option value="area11">ผังที่ 11</option>
-                <option value="area12">ผังที่ 12</option>
-            </select>
+        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-600 whitespace-nowrap">📍 เลือกผัง:</label>
+                <select id="layout-select" onchange="switchLayout(this.value)" class="bg-slate-50 border border-gray-300 text-gray-800 text-sm rounded-lg p-2 font-semibold w-48">
+                    </select>
+            </div>
+            
+            <button onclick="toggleInputModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
+                ➕ แก้ไข/เพิ่มรายชื่อในผังนี้
+            </button>
         </div>
     </div>
 
-    <div id="canvas" class="flex-1 bg-white border border-gray-200 rounded-2xl relative overflow-hidden shadow-inner">
-        <div class="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+    <div class="flex-1 flex flex-col md:flex-row gap-3 overflow-hidden">
+        
+        <div id="canvas-container" class="flex-1 bg-white border border-gray-200 rounded-2xl relative overflow-hidden shadow-inner flex flex-col">
+            <div id="canvas" class="w-full flex-1 relative bg-white">
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#f1f5f9_1px,transparent_1px),linear-gradient(to_bottom,#f1f5f9_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="mt-3 p-3 bg-white rounded-xl shadow-sm flex gap-3 justify-center shrink-0 z-50">
-        <button onclick="exportToPNG()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-5 py-2 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center gap-2">
-            📷 บันทึกผังนี้เป็นรูปภาพ (PNG)
-        </button>
-        <button onclick="resetCurrentLayout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm px-5 py-2 rounded-lg active:scale-95 transition-transform">
-            🔄 รีเซ็ตผังนี้ใหม่
-        </button>
+    <div class="mt-3 p-3 bg-white rounded-xl shadow-sm flex flex-wrap gap-2 justify-center shrink-0">
+        <span class="text-xs font-bold text-gray-500 self-center mr-2">💾 ส่งออกข้อมูลผังนี้:</span>
+        <button onclick="exportPNG()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">PNG Image</button>
+        <button onclick="exportPDF()" class="bg-red-700 hover:bg-red-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">PDF Document</button>
+        <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">Excel Sheet</button>
+        <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">Word (Docx)</button>
+        <button onclick="clearCurrentLayout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-xs px-4 py-2 rounded-lg ml-4">ล้างผังนี้</button>
+    </div>
+
+    <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">📥 จัดการรายชื่อประจำผัง</h3>
+            <p class="text-xs text-gray-500 mb-3">พิมพ์ข้อมูลเรียงลงมา รูปแบบ: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่, ชื่อ-ตำแหน่ง, รหัสสี</span> (เช่น 10,ผบ.ส.1,#00a2e8)</p>
+            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+            <div class="mt-4 flex justify-end gap-2">
+                <button onclick="toggleInputModal()" class="bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg">ยกเลิก</button>
+                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">ประมวลผลและนำเข้า</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ข้อมูลกำลังพลชุดเริ่มต้น (ใช้เป็นค่า Default สำหรับผังเปล่า)
-        const defaultPersonnelList = [
-            { id: '10', name: 'ผบ.พัน.นร.รร.ส.สส.', color: 'bg-[#00a2e8]', x: 620, y: 40 },
-            { id: '9', name: 'ผบ.พัน.ส.ชบช.เขตหลัง', color: 'bg-[#00a2e8]', x: 620, y: 100 },
-            { id: '8', name: 'เสธ.ส.1', color: 'bg-[#00a2e8]', x: 620, y: 160 },
-            { id: '7', name: 'หก.กผสป.สส.', color: 'bg-[#00a2e8]', x: 620, y: 220 },
-            { id: '6', name: 'ผบ.ส.1 พัน.101', color: 'bg-[#00a2e8]', x: 620, y: 280 },
-            { id: '5', name: 'ผบ.ส.1 พัน.102', color: 'bg-[#00a2e8]', x: 620, y: 340 },
-            { id: '4', name: 'รอง ผบ.ส.1(2)', color: 'bg-[#00a2e8]', x: 620, y: 400 },
-            { id: '3', name: 'รอง ผบ.ส.1(1)', color: 'bg-[#00a2e8]', x: 620, y: 460 },
-            { id: '2', name: 'ผบ.ส.1', color: 'bg-[#00a2e8]', x: 300, y: 460 },
-            { id: '9', name: 'คุณภัสร์ชลีรณณ์(แอมป์)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 100 },
-            { id: '8', name: 'น.ท.หญิงจุฑามาศ', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 160 },
-            { id: '7', name: 'คุณเกวลิน(เกว)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 220 },
-            { id: '6', name: 'คุณกฤตพร(แพร)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 280 },
-            { id: '5', name: 'คุณอังคนา(มุ่ย)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 340 },
-            { id: '4', name: 'คุณกฤตานนดา(ฝน)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 400 },
-            { id: '3', name: 'คุณศรินทรา(แก้ว)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 460 },
-            { id: '2', name: 'คุณพัชมณฑ์(น้ำหวาน)', color: 'bg-[#ff3399]', isPink: true, x: 80, y: 460 },
-            { id: '1', name: 'นายทหารเวร ส.1', color: 'bg-[#70c14a]', x: 300, y: 520 },
-            { id: '', name: 'คุณจารุวรรณ(พี่หนิง)', color: 'bg-[#bc00dd]', isPurple: true, x: 300, y: 590 }
-        ];
+        // ข้อมูลตั้งต้นสำหรับ ผังที่ 1 ตามที่เคยออกแบบไว้
+        const sampleData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
+9,ผบ.พัน.ส.ชบช.เขตหลัง,#00a2e8
+8,เสธ.ส.1,#00a2e8
+7,หก.กผสป.สส.,#00a2e8
+6,ผบ.ส.1 พัน.101,#00a2e8
+5,ผบ.ส.1 พัน.102,#00a2e8
+4,รอง ผบ.ส.1(2),#00a2e8
+3,รอง ผบ.ส.1(1),#00a2e8
+2,ผบ.ส.1,#00a2e8
+9,คุณภัสร์ชลีรณณ์(แอมป์),#ff3399
+8,น.ท.หญิงจุฑามาศ,#ff3399
+7,คุณเกวลิน(เกว),#ff3399
+6,คุณกฤตพร(แพร),#ff3399
+5,คุณอังคนา(มุ่ย),#ff3399
+4,คุณกฤตานนดา(ฝน),#ff3399
+3,คุณศรินทรา(แก้ว),#ff3399
+2,คุณพัชมณฑ์(น้ำหวาน),#ff3399
+1,นายทหารเวร ส.1,#70c14a
+,คุณจารุวรรณ(พี่หนิง),#bc00dd`;
 
-        // 1. คลังข้อมูลรองรับครบ 12 ผัง (ผังที่ 1 ล็อกพิกัดตามรูปเดิม ส่วนผังที่ 2-12 ตั้งค่าเริ่มต้นไว้ให้ลากวางใหม่)
-        const layoutsData = {
-            area1: { title: "ผังการต้อนรับ บริเวณ หน้า บก.ส.1 (ผังที่ 1)", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area2: { title: "พื้นที่จัดผังที่ 2", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area3: { title: "พื้นที่จัดผังที่ 3", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area4: { title: "พื้นที่จัดผังที่ 4", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area5: { title: "พื้นที่จัดผังที่ 5", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area6: { title: "พื้นที่จัดผังที่ 6", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area7: { title: "พื้นที่จัดผังที่ 7", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area8: { title: "พื้นที่จัดผังที่ 8", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area9: { title: "พื้นที่จัดผังที่ 9", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area10: { title: "พื้นที่จัดผังที่ 10", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area11: { title: "พื้นที่จัดผังที่ 11", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
-            area12: { title: "พื้นที่จัดผังที่ 12", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) }
-        };
-
-        let currentLayoutKey = 'area1';
+        // สร้างฐานข้อมูลจำลองรองรับ 12 ผังแยกขาดจากกันใน LocalStorage
+        let currentLayoutKey = "layout_1";
         const canvas = document.getElementById('canvas');
-        const layoutTitleElement = document.getElementById('layout-title');
+        const selectElement = document.getElementById('layout-select');
 
-        // 2. ฟังก์ชันวาดและควบคุมวัตถุบนกระดาน
-        function renderLayout(layoutKey) {
-            canvas.querySelectorAll('.draggable').forEach(el => el.remove());
+        // สร้างตัวเลือกใน Dropdown เมนู 1-12
+        for(let i=1; i<=12; i++) {
+            const opt = document.createElement('option');
+            opt.value = `layout_${i}`;
+            opt.innerText = `ผังที่ ${i} ${i===1?'(หน้า บก.ส.1)':''}`;
+            selectElement.appendChild(opt);
             
-            const currentLayout = layoutsData[layoutKey];
-            layoutTitleElement.innerText = currentLayout.title;
+            // ถ้าเป็นผังอื่นที่ยังไม่มีข้อมูล ให้ใส่ข้อมูลจำลองไว้รอเลย
+            if(!localStorage.getItem(`layout_${i}`)) {
+                localStorage.setItem(`layout_${i}`, JSON.stringify(parseRawData(i === 1 ? sampleData : `1,ตัวอย่างตำแหน่ง ผังที่ ${i},#00a2e8`)));
+            }
+        }
 
-            currentLayout.personnel.forEach(person => {
+        function parseRawData(text) {
+            let startY = 40;
+            return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
+                const parts = line.split(',');
+                // กำหนดการสลับด้านกล่องถ้าเป็นกลุ่มสีชมพู (#ff3399)
+                const isPink = parts[2]?.trim() === '#ff3399';
+                return {
+                    id: parts[0]?.trim() || '',
+                    name: parts[1]?.trim() || '',
+                    color: parts[2]?.trim() || '#00a2e8',
+                    isPink: isPink,
+                    x: isPink ? 400 : 580,
+                    y: startY + (index * 40) % 500
+                };
+            });
+        }
+
+        function renderCanvas() {
+            canvas.querySelectorAll('.draggable').forEach(el => el.remove());
+            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
+            
+            document.getElementById('layout-title').innerText = `ระบบจัดผังพื้นที่ (${selectElement.options[selectElement.selectedIndex].text})`;
+
+            data.forEach((person, idx) => {
                 const container = document.createElement('div');
-                container.className = 'draggable flex items-center gap-3 select-none z-10';
+                container.className = 'draggable flex items-center gap-2 select-none z-10';
                 container.style.left = person.x + 'px';
                 container.style.top = person.y + 'px';
 
                 const square = document.createElement('div');
-                square.className = `w-10 h-10 rounded-xl ${person.color} text-white flex items-center justify-center font-bold shadow-md text-sm shrink-0`;
+                square.className = `w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold shadow-sm text-xs shrink-0`;
+                square.style.backgroundColor = person.color;
                 square.innerText = person.id;
 
                 const label = document.createElement('div');
-                label.className = 'bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 text-xs font-bold text-gray-800 whitespace-nowrap';
+                label.className = 'bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-lg shadow-xs border border-gray-200 text-xs font-bold text-gray-800 whitespace-nowrap';
                 label.innerText = person.name;
 
                 if (person.isPink) {
-                    container.appendChild(label);
-                    container.appendChild(square);
+                    container.appendChild(label); container.appendChild(square);
                 } else {
-                    container.appendChild(square);
-                    container.appendChild(label);
+                    container.appendChild(square); container.appendChild(label);
                 }
 
                 canvas.appendChild(container);
 
-                // ระบบลากวาง (Drag & Drop) สำหรับหน้าจอสัมผัส iPad / โทรศัพท์มือถือ
-                let isDragging = false;
-                let startX, startY;
-
+                // ระบบลากวางประมวลผลพิกัดรองรับสัมผัส iPad
+                let isDragging = false; let startX, startY;
                 function startDrag(e) {
                     isDragging = true;
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    
                     startX = clientX - container.offsetLeft;
                     startY = clientY - container.offsetTop;
-                    container.style.zIndex = 50; 
+                    container.style.zIndex = 50;
                 }
-
                 function doDrag(e) {
                     if (!isDragging) return;
                     e.preventDefault();
-                    
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    let newX = clientX - startX; let newY = clientY - startY;
                     
-                    let newX = clientX - startX;
-                    let newY = clientY - startY;
-
-                    const maxW = canvas.clientWidth - container.clientWidth;
-                    const maxH = canvas.clientHeight - container.clientHeight;
-                    newX = Math.max(10, Math.min(newX, maxW - 10));
-                    newY = Math.max(10, Math.min(newY, maxH - 10));
-
-                    container.style.left = newX + 'px';
-                    container.style.top = newY + 'px';
-                    
-                    // บันทึกค่าตำแหน่งพิกัดลงในผังพื้นที่นั้นๆ ชั่วคราว
-                    person.x = newX;
-                    person.y = newY;
+                    container.style.left = newX + 'px'; container.style.top = newY + 'px';
+                    person.x = newX; person.y = newY;
                 }
-
                 function stopDrag() {
-                    isDragging = false;
-                    container.style.zIndex = 10;
+                    if(!isDragging) return;
+                    isDragging = false; container.style.zIndex = 10;
+                    // บันทึกความเปลี่ยนแปลงพิกัดกลับสู่คลังข้อมูลทันที
+                    localStorage.setItem(currentLayoutKey, JSON.stringify(data));
                 }
 
                 container.addEventListener('mousedown', startDrag);
                 document.addEventListener('mousemove', doDrag);
                 document.addEventListener('mouseup', stopDrag);
-
                 container.addEventListener('touchstart', startDrag, { passive: false });
                 document.addEventListener('touchmove', doDrag, { passive: false });
                 document.addEventListener('touchend', stopDrag);
             });
         }
 
-        // 3. ฟังก์ชันสลับผัง
-        function switchLayout(layoutKey) {
-            currentLayoutKey = layoutKey;
-            renderLayout(layoutKey);
+        function switchLayout(val) { currentLayoutKey = val; renderCanvas(); }
+        function toggleInputModal() { 
+            const modal = document.getElementById('input-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
+                document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
+            }
         }
+        function processInputData() {
+            const txt = document.getElementById('raw-data-input').value;
+            localStorage.setItem(currentLayoutKey, JSON.stringify(parseRawData(txt)));
+            toggleInputModal(); renderCanvas();
+        }
+        function clearCurrentLayout() { if(confirm('ต้องการล้างข้อมูลผังนี้ใช่หรือไม่?')) { localStorage.setItem(currentLayoutKey, JSON.stringify([])); renderCanvas(); } }
 
-        // ฟังก์ชันสั่ง Export พื้นที่จัดผังเป็นรูปภาพ PNG
-        function exportToPNG() {
-            const uiHeader = document.querySelector('.shrink-0');
-            const uiFooter = document.querySelector('.mt-3');
-            
-            uiHeader.style.visibility = 'hidden';
-            uiFooter.style.visibility = 'hidden';
-            
-            html2canvas(document.body, { scale: 2 }).then(canvasImage => {
-                const link = document.createElement('a');
-                const titleText = layoutsData[currentLayoutKey].title;
-                link.download = `${titleText}.png`;
-                link.href = canvasImage.toDataURL('image/png');
-                link.click();
-                
-                uiHeader.style.visibility = 'visible';
-                uiFooter.style.visibility = 'visible';
+        // ================== ระบบประมวลผลและการส่งออกไฟล์ (OUTPUT) ==================
+        
+        function exportPNG() {
+            html2canvas(canvas, { scale: 2 }).then(img => {
+                const a = document.createElement('a'); a.download = `${selectElement.options[selectElement.selectedIndex].text}.png`;
+                a.href = img.toDataURL('image/png'); a.click();
             });
         }
 
-        // รีเซ็ตผังปัจจุบัน
-        function resetCurrentLayout() {
-            location.reload();
+        function exportPDF() {
+            html2canvas(canvas, { scale: 1.5 }).then(imgCanvas => {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]);
+                pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight);
+                pdf.save(`${selectElement.options[selectElement.selectedIndex].text}.pdf`);
+            });
         }
 
-        // รันหน้าจอเริ่มต้น
-        renderLayout(currentLayoutKey);
+        function exportExcel() {
+            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
+            const rows = data.map(p => ({ "หมายเลข/ลำดับ": p.id, "ชื่อ - ตำแหน่งภารกิจ": p.name, "พิกัด X": p.x, "พิกัด Y": p.y }));
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "รายชื่อผู้ร่วมพิธี");
+            XLSX.writeFile(wb, `${selectElement.options[selectElement.selectedIndex].text}.xlsx`);
+        }
+
+        function exportWord() {
+            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
+            let tableRows = data.map((p, i) => `<tr><td style="border:1px solid #ccc;padding:8px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:8px;">${p.name}</td></tr>`).join('');
+            
+            const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><title>รายงานผัง</title><style>body{font-family:Arial,sans-serif;}</style></head>
+                <body>
+                    <h2>รายงานรายชื่อประจำ: ${selectElement.options[selectElement.selectedIndex].text}</h2>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:8px;width:15%">ลำดับ</th><th style="border:1px solid #ccc;padding:8px;text-align:left;">รายชื่อ / ตำแหน่ง</th></tr></thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                </body>
+                </html>`;
+
+            const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url;
+            a.download = `${selectElement.options[selectElement.selectedIndex].text}.doc`;
+            a.click();
+        }
+
+        // เริ่มทำงานตัวแรก
+        renderCanvas();
     </script>
 </body>
 </html>
