@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบบริหารจัดการผังต้อนรับ ส.1 (หน้าแรกเปรียบเทียบ 12 ผัง)</title>
+    <title>ระบบบริหารจัดการผังต้อนรับและภารกิจ ส.1</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -17,8 +17,8 @@
 
     <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <div>
-            <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังพื้นที่ร่วมพิธี ส.1</h1>
-            <p class="text-xs text-gray-500 mt-1">ติ๊กเลือก Checkbox เพื่อซ้อนแสดงผลผังตามพื้นที่ที่ต้องการประมวลผลพร้อมกัน</p>
+            <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</h1>
+            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox หน้าชื่อภารกิจที่ต้องการ เพื่อแสดงผลการจัดผังกำลังพล</p>
         </div>
         
         <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-gray-200">
@@ -32,16 +32,16 @@
 
     <div class="flex-1 flex flex-col md:flex-row gap-3 overflow-hidden">
         
-        <div class="w-full md:w-80 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col overflow-y-auto shrink-0 shadow-sm">
+        <div class="w-full md:w-96 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col overflow-y-auto shrink-0 shadow-sm">
             <div class="flex justify-between items-center mb-3">
-                <h2 class="text-sm font-bold text-gray-700 flex items-center gap-1">🗂️ รายการผังทั้งหมด</h2>
+                <h2 class="text-sm font-bold text-gray-700 flex items-center gap-1">📋 รายการภารกิจ/พิธีการ</h2>
                 <div class="flex gap-2">
                     <button onclick="toggleAllCheckboxes(true)" class="text-[10px] text-blue-600 font-bold hover:underline">เลือกทั้งหมด</button>
                     <button onclick="toggleAllCheckboxes(false)" class="text-[10px] text-gray-400 font-bold hover:underline">ล้าง</button>
                 </div>
             </div>
             
-            <div id="checkbox-container" class="space-y-1.5 flex-1">
+            <div id="checkbox-container" class="space-y-1 flex-1 pr-1">
                 </div>
         </div>
         
@@ -54,7 +54,7 @@
 
     <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
-            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-2">📥 จัดการรายชื่อประจำผัง</h3>
+            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-1">📥 จัดการรายชื่อประจำผัง</h3>
             <p class="text-xs text-gray-500 mb-3">รูปแบบข้อมูล: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่,ชื่อ-ตำแหน่ง,รหัสสี</span></p>
             <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
             <div class="mt-4 flex justify-end gap-2">
@@ -65,8 +65,38 @@
     </div>
 
     <script>
-        // ข้อมูลตัวอย่างเริ่มต้นสำหรับ ผังที่ 1 เพื่อใช้เป็นแบบฟอร์มหลัก
-        const sampleData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
+        // รายชื่อผังภารกิจทั้งหมดที่กำหนดมาใหม่ (26 + 1 ผัง)
+        const missionList = [
+            "ต้อนรับหน้าพระอนุสาวรีย์",
+            "สักการะพระอนุสาวรีย์",
+            "ถ่ายภาพหน้าพระอนุสาวรีย์",
+            "ต้อนรับหน้า บก.ส.1",
+            "รับเคารพจากแถวทหารต้อนรับ",
+            "ห้องบุรฉัตร",
+            "ห้องประชุม",
+            "ประดับเข็มบุรฉัตร อาคารอเนกประสงค์",
+            "ประดับเข็มบุรฉัตรห้องเกียรติยศ",
+            "ประดับยศ",
+            "รายงายตัวเข้า",
+            "รายงานตัวออก",
+            "ลาอุปสมบท",
+            "ถ่ายภาพหน้า สนง.",
+            "ลงนามสมุดเยี่ยม",
+            "เยี่ยมบุตรพิเศษ ส.1",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1",
+            "เยี่ยมบุตรพิเศษ ส.1 พัน.101",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.101",
+            "เยี่ยมบุตรพิเศษ ส.1 พัน.102",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.102",
+            "เยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
+            "เยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.",
+            "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.",
+            "พิธีอื่นๆ(……)"
+        ];
+
+        // ข้อมูลตัวอย่างสำหรับผังแรกสุด (ต้อนรับหน้าพระอนุสาวรีย์) หรือเมื่อกดตั้งค่าผังเปล่า
+        const sampleBaseData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
 9,ผบ.พัน.ส.ชบช.เขตหลัง,#00a2e8
 8,เสธ.ส.1,#00a2e8
 7,หก.กผสป.สส.,#00a2e8
@@ -90,31 +120,8 @@
         const canvas = document.getElementById('canvas');
         const checkboxContainer = document.getElementById('checkbox-container');
 
-        // สร้าง Checkbox เมนูควบคุม 1-12 และฐานข้อมูลจำลองแยกชิ้นเด็ดขาด
-        for(let i=1; i<=12; i++) {
-            const key = `layout_${i}`;
-            const labelText = `ผังที่ ${i} ${i===1?'(หน้า บก.ส.1)':''}`;
-            
-            // เตรียมฐานข้อมูลเบื้องต้น
-            if(!localStorage.getItem(key)) {
-                localStorage.setItem(key, JSON.stringify(parseRawData(i === 1 ? sampleData : `1,ตัวอย่างตำแหน่ง ผังที่ ${i},#00a2e8`, i)));
-            }
-
-            // สร้างแถวเมนูประกอบด้วย Checkbox และปุ่มฟันเฟืองสำหรับตั้งค่ารายชื่อ
-            const row = document.createElement('div');
-            row.className = "flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all";
-            
-            row.innerHTML = `
-                <label class="flex items-center gap-2.5 cursor-pointer w-full select-none text-xs font-semibold text-gray-700">
-                    <input type="checkbox" value="${key}" ${i===1?'checked':''} onchange="renderCanvas()" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span>${labelText}</span>
-                </label>
-                <button onclick="openEditModal('${key}', '${labelText}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1">⚙️ แก้ไขข้อมูล</button>
-            `;
-            checkboxContainer.appendChild(row);
-        }
-
-        function parseRawData(text, layoutNum) {
+        // ฟังก์ชันแปลงข้อมูลข้อความเป็น Object พิกัดโครงสร้างการลากวาง
+        function parseRawData(text, shiftFactor) {
             let startY = 40;
             return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
                 const parts = line.split(',');
@@ -124,28 +131,53 @@
                     name: parts[1]?.trim() || '',
                     color: parts[2]?.trim() || '#00a2e8',
                     isPink: isPink,
-                    // หากกระจายผัง 2-12 ให้ขยับพิกัดเริ่มต้นกระจายตัวไปเรื่อยๆ เพื่อไม่ให้ทับซ้อนจุดเดิมตอนเปิดพร้อมกัน
-                    x: isPink ? 400 : 580 + (layoutNum * 10 - 10),
-                    y: (startY + (index * 45)) % 550
+                    // ปรับกระจายจุด X/Y เริ่มต้นเล็กน้อยตามรหัสผัง เพื่อไม่ให้ซ้อนกันสนิทตอนกดเปิดดูพร้อมกัน
+                    x: isPink ? 380 : 560 + (shiftFactor * 5 % 60),
+                    y: (startY + (index * 42) + (shiftFactor * 5)) % 540
                 };
             });
         }
 
-        // ประมวลผลดึงผังทั้งหมดที่มีการติ๊กถูก เอามาวาดซ้อนเลเยอร์บนแผ่นกระดานเดียวกัน
+        // วนลูปสร้างรายการเมนูฝั่งซ้ายของทั้ง 27 ผังภารกิจ
+        missionList.forEach((missionName, index) => {
+            const key = `mission_layout_${index + 1}`;
+            
+            // ตรวจสอบหรือสร้าง LocalStorage เริ่มต้นแยกเฉพาะของแต่ละภารกิจ
+            if (!localStorage.getItem(key)) {
+                // ให้ผังที่ 1-4 มีข้อมูลตั้งต้นไว้ทดสอบ ส่วนผังอื่นๆ จะสแตนด์บายข้อมูลแถวเดียวไว้ก่อนเพื่อป้องกันการโหลดหนัก
+                const initialText = (index < 4) ? sampleBaseData : `1,เจ้าหน้าที่หลักภารกิจ (${missionName}),#70c14a`;
+                localStorage.setItem(key, JSON.stringify(parseRawData(initialText, index)));
+            }
+
+            // ตัวเลือกเปิดเช็คบล็อก (กำหนดให้ติ๊กเลือกเปิดผังแรกไว้เป็น Default)
+            const isChecked = index === 0 ? 'checked' : '';
+
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all";
+            row.innerHTML = `
+                <label class="flex items-center gap-2.5 cursor-pointer w-full select-none text-xs font-semibold text-gray-700 pr-2">
+                    <input type="checkbox" value="${key}" ${isChecked} onchange="renderCanvas()" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 shrink-0">
+                    <span class="break-words max-w-[180px] sm:max-w-none">${missionName}</span>
+                </label>
+                <button onclick="openEditModal('${key}', '${missionName}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1 shrink-0">⚙️ ตั้งค่า</button>
+            `;
+            checkboxContainer.appendChild(row);
+        });
+
+        // ฟังก์ชันวาดซ้อนเลเยอร์ตำแหน่งกำลังพลลงบนบอร์ดตามตัวเลือก Checkbox
         function renderCanvas() {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
-            
-            // ดึงค่าว่า Checkbox อันไหนโดนเปิดอยู่บ้าง
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                const layoutNum = layoutKey.split('_')[1];
+                // ค้นหาชื่อภารกิจมาทำเป็น Tag ติดท้ายชื่อ
+                const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
+                const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "";
 
                 data.forEach((person) => {
                     const container = document.createElement('div');
-                    // ใส่ Label จางๆ ระบุว่าเป็นตัวมาจากผังหมายเลขใดเพื่อไม่ให้สับสนตอนเปิดหลายผัง
-                    container.className = 'draggable flex items-center gap-2 select-none z-10 bg-white/50 rounded-xl p-0.5 border border-transparent hover:border-blue-400';
+                    container.className = 'draggable flex items-center gap-2 select-none z-10 bg-white/40 rounded-xl p-0.5 border border-transparent hover:border-blue-500';
                     container.style.left = person.x + 'px';
                     container.style.top = person.y + 'px';
 
@@ -155,8 +187,8 @@
                     square.innerText = person.id;
 
                     const label = document.createElement('div');
-                    label.className = 'bg-white/95 backdrop-blur-xs px-2 py-1 rounded-lg shadow-xs border border-gray-200 text-[11px] font-bold text-gray-800 whitespace-nowrap';
-                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(ผัง ${layoutNum})</span>`;
+                    label.className = 'bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-lg shadow-xs border border-gray-200 text-[11px] font-bold text-gray-800 whitespace-nowrap';
+                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(${missionName.substring(0, 10)}...)</span>`;
 
                     if (person.isPink) {
                         container.appendChild(label); container.appendChild(square);
@@ -166,7 +198,7 @@
 
                     canvas.appendChild(container);
 
-                    // ระบบลากวางประมวลผลพิกัดแบบมัลติเลเยอร์สัมผัส iPad
+                    // ระบบตรวจจับการลากจัดผังด้วยปลายนิ้วบน iPad
                     let isDragging = false; let startX, startY;
                     function startDrag(e) {
                         isDragging = true;
@@ -189,7 +221,6 @@
                     function stopDrag() {
                         if(!isDragging) return;
                         isDragging = false; container.style.zIndex = 10;
-                        // เซฟพิกัดใหม่บันทึกแยกเข้าฐานข้อมูลผังนั้นโดยตรง
                         localStorage.setItem(layoutKey, JSON.stringify(data));
                     }
 
@@ -203,16 +234,14 @@
             });
         }
 
-        // ปุ่มควบคุม Checkbox ทั้งหมดในคลิกเดียว
         function toggleAllCheckboxes(status) {
             checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = status);
             renderCanvas();
         }
 
-        // คอนโทรลหน้าต่างเปิดรับข้อมูล
         function openEditModal(key, title) {
             activeEditKey = key;
-            document.getElementById('modal-target-title').innerText = `📥 แก้ไขข้อมูลรายชื่อ: ${title}`;
+            document.getElementById('modal-target-title').innerText = `📥 ป้อนข้อมูล: ${title}`;
             const data = JSON.parse(localStorage.getItem(key)) || [];
             document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
             document.getElementById('input-modal').classList.remove('hidden');
@@ -220,20 +249,21 @@
         function toggleInputModal() { document.getElementById('input-modal').classList.add('hidden'); }
         function processInputData() {
             const txt = document.getElementById('raw-data-input').value;
-            const layoutNum = activeEditKey.split('_')[1];
-            localStorage.setItem(activeEditKey, JSON.stringify(parseRawData(txt, parseInt(layoutNum))));
+            localStorage.setItem(activeEditKey, JSON.stringify(parseRawData(txt, 1)));
             toggleInputModal(); renderCanvas();
         }
 
-        // ================== ระบบประมวลผลการส่งออกไฟล์ข้อมูลรวมเลเยอร์ ==================
-        function getActiveLayoutNames() {
-            return Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
-                .map(cb => cb.parentElement.innerText.trim()).join(' & ');
+        // ================== ระบบประมวลผลเซฟดาวน์โหลดไฟล์ข้อมูล ==================
+        function getSelectedMissionsName() {
+            const checkedCount = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+            return checkedCount === 1 
+                ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim()
+                : `รวม_${checkedCount}_ภารกิจ`;
         }
 
         function exportPNG() {
             html2canvas(canvas, { scale: 2 }).then(img => {
-                const a = document.createElement('a'); a.download = `ผังรวม_${getActiveLayoutNames()}.png`;
+                const a = document.createElement('a'); a.download = `ผัง_${getSelectedMissionsName()}.png`;
                 a.href = img.toDataURL('image/png'); a.click();
             });
         }
@@ -243,7 +273,7 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]);
                 pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight);
-                pdf.save(`ผังรวม_${getActiveLayoutNames()}.pdf`);
+                pdf.save(`ผังภารกิจ_${getSelectedMissionsName()}.pdf`);
             });
         }
 
@@ -253,11 +283,16 @@
             
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                const rows = data.map(p => ({ "ลำดับ/หมายเลข": p.id, "ชื่อ-ตำแหน่ง": p.name, "รหัสสีฟอร์ม": p.color, "พิกัดแกน X": p.x, "พิกัดแกน Y": p.y }));
+                const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
+                const fullMissionName = cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ";
+                // ตั้งชื่อ Tab Sheet ไม่ให้เกิน 30 ตัวอักษรตามมาตรฐาน Excel
+                const sheetName = fullMissionName.substring(0, 25);
+                
+                const rows = data.map(p => ({ "หมายเลข": p.id, "ชื่อ-ตำแหน่ง": p.name, "รหัสสี": p.color, "พิกัด X": p.x, "พิกัด Y": p.y }));
                 const ws = XLSX.utils.json_to_sheet(rows);
-                XLSX.utils.book_append_sheet(wb, ws, `ผังที่ ${layoutKey.split('_')[1]}`);
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
             });
-            XLSX.writeFile(wb, "รายงานรวมพิกัดกำลังพล_12ผัง.xlsx");
+            XLSX.writeFile(wb, "รายงานผังพิกัดรายชื่อกำลังพล_ส1.xlsx");
         }
 
         function exportWord() {
@@ -266,28 +301,31 @@
 
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                const layoutNum = layoutKey.split('_')[1];
+                const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
+                const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ";
+                
                 let tableRows = data.map(p => `<tr><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:6px;">${p.name}</td><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.color}</td></tr>`).join('');
                 
                 combinedContent += `
-                    <h3>📌 ข้อมูลกำลังพลประจำ: ผังที่ ${layoutNum}</h3>
-                    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">รายชื่อ / ตำแหน่งภารกิจ</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสี</th></tr></thead>
+                    <h3>📌 รายชื่อกำลังพลประจำภารกิจ: ${missionName}</h3>
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:25px;">
+                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">ยศ นาม ตำแหน่ง</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสีประจำฝ่าย</th></tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table><hr/>`;
             });
 
             const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <body><h2>รายงานข้อมูลรวมระบบผังพื้นที่พิธี ส.1</h2>${combinedContent}</body>
+                <head><meta charset="utf-8"></head>
+                <body><h2>เอกสารรายงานบัญชีรายชื่อจัดผัง ส.1</h2>${combinedContent}</body>
                 </html>`;
 
             const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = "รายงานผังรวมชุดปฏิบัติการ.doc"; a.click();
+            const a = document.createElement('a'); a.href = url; a.download = "รายงานจัดผังกำลังพลต้อนรับ.doc"; a.click();
         }
 
-        // เริ่มทำงานวาดโครงสร้างแรกบนหน้าจอ iPad
+        // เริ่มต้นรันประมวลผลกระดาน
         renderCanvas();
     </script>
 </body>
