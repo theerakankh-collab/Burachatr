@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>โปรแกรมจัดผังต้อนรับ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* ป้องกันหน้าจอ iPad เลื่อนไปมาเวลาใช้นิ้วลาก */
+        body { touch-action: none; overflow: hidden; }
+        .draggable { touch-action: none; position: absolute; cursor: move; }
+    </style>
+</head>
+<body class="bg-slate-100 w-screen h-screen flex flex-col p-4 font-sans select-none">
+
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+        <h1 class="text-xl font-bold text-gray-800">ผังการต้อนรับ บริเวณ หน้า บก.ส.1</h1>
+        <p class="text-xs text-gray-500">ใช้นิ้วลากวางตำแหน่งรายชื่อ (สี่เหลี่ยมจัตุรัส) ได้อิสระ รองรับ iPad / มือถือ / PC</p>
+    </div>
+
+    <div id="canvas" class="flex-1 bg-white border-2 border-dashed border-gray-300 rounded-2xl relative overflow-hidden shadow-inner">
+        </div>
+
+    <script>
+        // 1. ข้อมูลรายชื่อและสีตามโครงสร้างเดิม
+        const personnelData = [
+            { id: '10', name: 'ผบ.พัน.นร.รร.ส.สส.', color: 'bg-[#00a2e8]', x: 350, y: 30 },
+            { id: '9', name: 'ผบ.พัน.ส.ชบช.เขตหลัง', color: 'bg-[#00a2e8]', x: 350, y: 90 },
+            { id: '8', name: 'เสธ.ส.1', color: 'bg-[#00a2e8]', x: 350, y: 150 },
+            { id: '7', name: 'หก.กผสป.สส.', color: 'bg-[#00a2e8]', x: 350, y: 210 },
+            { id: '6', name: 'ผบ.ส.1 พัน.101', color: 'bg-[#00a2e8]', x: 350, y: 270 },
+            { id: '5', name: 'ผบ.ส.1 พัน.102', color: 'bg-[#00a2e8]', x: 350, y: 330 },
+            { id: '4', name: 'รอง ผบ.ส.1(2)', color: 'bg-[#00a2e8]', x: 350, y: 390 },
+            { id: '3', name: 'รอง ผบ.ส.1(1)', color: 'bg-[#00a2e8]', x: 350, y: 450 },
+            
+            { id: '9p', name: 'คุณภัสร์ชลีรณณ์(แอมป์)', color: 'bg-[#ff3399]', x: 150, y: 90 },
+            { id: '8p', name: 'น.ท.หญิงจุฑามาศ', color: 'bg-[#ff3399]', x: 150, y: 150 },
+            
+            { id: '2p', name: 'คุณพัชมณฑ์(น้ำหวาน)', color: 'bg-[#ff3399]', x: -50, y: 450 },
+            { id: '2', name: 'ผบ.ส.1', color: 'bg-[#00a2e8]', x: 80, y: 450 },
+            { id: '1', name: 'นายทหารเวร ส.1', color: 'bg-[#70c14a]', x: 80, y: 510 }
+        ];
+
+        const canvas = document.getElementById('canvas');
+
+        // 2. ฟังก์ชันสร้างปุ่มรายชื่อลงบนกระดาน
+        personnelData.forEach(person => {
+            const container = document.createElement('div');
+            container.className = 'draggable flex items-center gap-2 select-none z-10';
+            container.style.left = person.x + 'px';
+            container.style.top = person.y + 'px';
+
+            // ส่วนของสี่เหลี่ยมจัตุรัสแสดงตัวเลข (เปลี่ยนจาก rounded-full เป็น rounded-lg)
+            const square = document.createElement('div');
+            square.className = `w-10 h-10 rounded-lg ${person.color} text-white flex items-center justify-center font-bold shadow-md text-sm`;
+            square.innerText = person.id.replace('p', ''); // แสดงเฉพาะตัวเลข
+
+            // ส่วนของข้อความชื่อ
+            const label = document.createElement('div');
+            label.className = 'bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm border border-gray-200 text-xs font-semibold text-gray-700 whitespace-nowrap';
+            label.innerText = person.name;
+
+            // ประกอบร่าง
+            container.appendChild(square);
+            container.appendChild(label);
+            canvas.appendChild(container);
+
+            // 3. ระบบลากวางสำหรับ iPad และ PC
+            let isDragging = false;
+            let startX, startY;
+
+            function startDrag(e) {
+                isDragging = true;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                startX = clientX - container.offsetLeft;
+                startY = clientY - container.offsetTop;
+                container.style.zIndex = 50; 
+            }
+
+            function doDrag(e) {
+                if (!isDragging) return;
+                e.preventDefault();
+                
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                let newX = clientX - startX;
+                let newY = clientY - startY;
+
+                container.style.left = newX + 'px';
+                container.style.top = newY + 'px';
+            }
+
+            function stopDrag() {
+                isDragging = false;
+                container.style.zIndex = 10;
+            }
+
+            // ผูกเหตุการณ์ลากวาง
+            container.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', stopDrag);
+
+            container.addEventListener('touchstart', startDrag, { passive: false });
+            document.addEventListener('touchmove', doDrag, { passive: false });
+            document.addEventListener('touchend', stopDrag);
+        });
+    </script>
+</body>
+</html>
 
