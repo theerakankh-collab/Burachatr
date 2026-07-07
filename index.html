@@ -3,34 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบบริหารจัดการผังต้อนรับ ส.1 (12 ผัง)</title>
+    <title>ระบบบริหารจัดการผังต้อนรับ ส.1 (หน้าแรกเปรียบเทียบ 12 ผัง)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        body { touch-action: none; overflow: hidden; }
+        .draggable { touch-action: none; position: absolute; cursor: move; }
+    </style>
 </head>
 <body class="bg-slate-100 w-screen h-screen flex flex-col p-4 font-sans select-none">
 
     <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
         <div>
-            <h1 id="layout-title" class="text-xl font-bold text-gray-800">ระบบจัดผังพื้นที่ (12 ผัง)</h1>
-            <p class="text-xs text-gray-500 mt-1">รับข้อมูล ประมวลผลพิกัดลากวาง และส่งออกรายงานในรูปแบบดิจิทัล</p>
+            <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังพื้นที่ร่วมพิธี ส.1</h1>
+            <p class="text-xs text-gray-500 mt-1">ติ๊กเลือก Checkbox เพื่อซ้อนแสดงผลผังตามพื้นที่ที่ต้องการประมวลผลพร้อมกัน</p>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <div class="flex items-center gap-2">
-                <label class="text-xs font-bold text-gray-600 whitespace-nowrap">📍 เลือกผัง:</label>
-                <select id="layout-select" onchange="switchLayout(this.value)" class="bg-slate-50 border border-gray-300 text-gray-800 text-sm rounded-lg p-2 font-semibold w-48">
-                    </select>
-            </div>
-            
-            <button onclick="toggleInputModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm">
-                ➕ แก้ไข/เพิ่มรายชื่อในผังนี้
-            </button>
+        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto bg-slate-50 p-2 rounded-xl border border-gray-200">
+            <span class="text-xs font-bold text-gray-600 ml-1">💾 ส่งออกผังที่เลือก:</span>
+            <button onclick="exportPNG()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">PNG</button>
+            <button onclick="exportPDF()" class="bg-red-700 hover:bg-red-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">PDF</button>
+            <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">Excel</button>
+            <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-3 py-1.5 rounded-lg shadow-sm">Word</button>
         </div>
     </div>
 
     <div class="flex-1 flex flex-col md:flex-row gap-3 overflow-hidden">
+        
+        <div class="w-full md:w-80 bg-white border border-gray-200 rounded-2xl p-4 flex flex-col overflow-y-auto shrink-0 shadow-sm">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-gray-700 flex items-center gap-1">🗂️ รายการผังทั้งหมด</h2>
+                <div class="flex gap-2">
+                    <button onclick="toggleAllCheckboxes(true)" class="text-[10px] text-blue-600 font-bold hover:underline">เลือกทั้งหมด</button>
+                    <button onclick="toggleAllCheckboxes(false)" class="text-[10px] text-gray-400 font-bold hover:underline">ล้าง</button>
+                </div>
+            </div>
+            
+            <div id="checkbox-container" class="space-y-1.5 flex-1">
+                </div>
+        </div>
         
         <div id="canvas-container" class="flex-1 bg-white border border-gray-200 rounded-2xl relative overflow-hidden shadow-inner flex flex-col">
             <div id="canvas" class="w-full flex-1 relative bg-white">
@@ -39,29 +52,20 @@
         </div>
     </div>
 
-    <div class="mt-3 p-3 bg-white rounded-xl shadow-sm flex flex-wrap gap-2 justify-center shrink-0">
-        <span class="text-xs font-bold text-gray-500 self-center mr-2">💾 ส่งออกข้อมูลผังนี้:</span>
-        <button onclick="exportPNG()" class="bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">PNG Image</button>
-        <button onclick="exportPDF()" class="bg-red-700 hover:bg-red-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">PDF Document</button>
-        <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">Excel Sheet</button>
-        <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow-sm">Word (Docx)</button>
-        <button onclick="clearCurrentLayout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-xs px-4 py-2 rounded-lg ml-4">ล้างผังนี้</button>
-    </div>
-
     <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
-            <h3 class="text-lg font-bold text-gray-900 mb-2">📥 จัดการรายชื่อประจำผัง</h3>
-            <p class="text-xs text-gray-500 mb-3">พิมพ์ข้อมูลเรียงลงมา รูปแบบ: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่, ชื่อ-ตำแหน่ง, รหัสสี</span> (เช่น 10,ผบ.ส.1,#00a2e8)</p>
+            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-2">📥 จัดการรายชื่อประจำผัง</h3>
+            <p class="text-xs text-gray-500 mb-3">รูปแบบข้อมูล: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่,ชื่อ-ตำแหน่ง,รหัสสี</span></p>
             <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
             <div class="mt-4 flex justify-end gap-2">
                 <button onclick="toggleInputModal()" class="bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg">ยกเลิก</button>
-                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">ประมวลผลและนำเข้า</button>
+                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">นำเข้าข้อมูล</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ข้อมูลตั้งต้นสำหรับ ผังที่ 1 ตามที่เคยออกแบบไว้
+        // ข้อมูลตัวอย่างเริ่มต้นสำหรับ ผังที่ 1 เพื่อใช้เป็นแบบฟอร์มหลัก
         const sampleData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
 9,ผบ.พัน.ส.ชบช.เขตหลัง,#00a2e8
 8,เสธ.ส.1,#00a2e8
@@ -82,127 +86,154 @@
 1,นายทหารเวร ส.1,#70c14a
 ,คุณจารุวรรณ(พี่หนิง),#bc00dd`;
 
-        // สร้างฐานข้อมูลจำลองรองรับ 12 ผังแยกขาดจากกันใน LocalStorage
-        let currentLayoutKey = "layout_1";
+        let activeEditKey = "";
         const canvas = document.getElementById('canvas');
-        const selectElement = document.getElementById('layout-select');
+        const checkboxContainer = document.getElementById('checkbox-container');
 
-        // สร้างตัวเลือกใน Dropdown เมนู 1-12
+        // สร้าง Checkbox เมนูควบคุม 1-12 และฐานข้อมูลจำลองแยกชิ้นเด็ดขาด
         for(let i=1; i<=12; i++) {
-            const opt = document.createElement('option');
-            opt.value = `layout_${i}`;
-            opt.innerText = `ผังที่ ${i} ${i===1?'(หน้า บก.ส.1)':''}`;
-            selectElement.appendChild(opt);
+            const key = `layout_${i}`;
+            const labelText = `ผังที่ ${i} ${i===1?'(หน้า บก.ส.1)':''}`;
             
-            // ถ้าเป็นผังอื่นที่ยังไม่มีข้อมูล ให้ใส่ข้อมูลจำลองไว้รอเลย
-            if(!localStorage.getItem(`layout_${i}`)) {
-                localStorage.setItem(`layout_${i}`, JSON.stringify(parseRawData(i === 1 ? sampleData : `1,ตัวอย่างตำแหน่ง ผังที่ ${i},#00a2e8`)));
+            // เตรียมฐานข้อมูลเบื้องต้น
+            if(!localStorage.getItem(key)) {
+                localStorage.setItem(key, JSON.stringify(parseRawData(i === 1 ? sampleData : `1,ตัวอย่างตำแหน่ง ผังที่ ${i},#00a2e8`, i)));
             }
+
+            // สร้างแถวเมนูประกอบด้วย Checkbox และปุ่มฟันเฟืองสำหรับตั้งค่ารายชื่อ
+            const row = document.createElement('div');
+            row.className = "flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all";
+            
+            row.innerHTML = `
+                <label class="flex items-center gap-2.5 cursor-pointer w-full select-none text-xs font-semibold text-gray-700">
+                    <input type="checkbox" value="${key}" ${i===1?'checked':''} onchange="renderCanvas()" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <span>${labelText}</span>
+                </label>
+                <button onclick="openEditModal('${key}', '${labelText}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1">⚙️ แก้ไขข้อมูล</button>
+            `;
+            checkboxContainer.appendChild(row);
         }
 
-        function parseRawData(text) {
+        function parseRawData(text, layoutNum) {
             let startY = 40;
             return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
                 const parts = line.split(',');
-                // กำหนดการสลับด้านกล่องถ้าเป็นกลุ่มสีชมพู (#ff3399)
                 const isPink = parts[2]?.trim() === '#ff3399';
                 return {
                     id: parts[0]?.trim() || '',
                     name: parts[1]?.trim() || '',
                     color: parts[2]?.trim() || '#00a2e8',
                     isPink: isPink,
-                    x: isPink ? 400 : 580,
-                    y: startY + (index * 40) % 500
+                    // หากกระจายผัง 2-12 ให้ขยับพิกัดเริ่มต้นกระจายตัวไปเรื่อยๆ เพื่อไม่ให้ทับซ้อนจุดเดิมตอนเปิดพร้อมกัน
+                    x: isPink ? 400 : 580 + (layoutNum * 10 - 10),
+                    y: (startY + (index * 45)) % 550
                 };
             });
         }
 
+        // ประมวลผลดึงผังทั้งหมดที่มีการติ๊กถูก เอามาวาดซ้อนเลเยอร์บนแผ่นกระดานเดียวกัน
         function renderCanvas() {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
-            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
             
-            document.getElementById('layout-title').innerText = `ระบบจัดผังพื้นที่ (${selectElement.options[selectElement.selectedIndex].text})`;
+            // ดึงค่าว่า Checkbox อันไหนโดนเปิดอยู่บ้าง
+            const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
 
-            data.forEach((person, idx) => {
-                const container = document.createElement('div');
-                container.className = 'draggable flex items-center gap-2 select-none z-10';
-                container.style.left = person.x + 'px';
-                container.style.top = person.y + 'px';
+            checkedBoxes.forEach(layoutKey => {
+                const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
+                const layoutNum = layoutKey.split('_')[1];
 
-                const square = document.createElement('div');
-                square.className = `w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold shadow-sm text-xs shrink-0`;
-                square.style.backgroundColor = person.color;
-                square.innerText = person.id;
+                data.forEach((person) => {
+                    const container = document.createElement('div');
+                    // ใส่ Label จางๆ ระบุว่าเป็นตัวมาจากผังหมายเลขใดเพื่อไม่ให้สับสนตอนเปิดหลายผัง
+                    container.className = 'draggable flex items-center gap-2 select-none z-10 bg-white/50 rounded-xl p-0.5 border border-transparent hover:border-blue-400';
+                    container.style.left = person.x + 'px';
+                    container.style.top = person.y + 'px';
 
-                const label = document.createElement('div');
-                label.className = 'bg-white/95 backdrop-blur-xs px-2.5 py-1.5 rounded-lg shadow-xs border border-gray-200 text-xs font-bold text-gray-800 whitespace-nowrap';
-                label.innerText = person.name;
+                    const square = document.createElement('div');
+                    square.className = `w-9 h-9 rounded-xl text-white flex items-center justify-center font-bold shadow-sm text-xs shrink-0`;
+                    square.style.backgroundColor = person.color;
+                    square.innerText = person.id;
 
-                if (person.isPink) {
-                    container.appendChild(label); container.appendChild(square);
-                } else {
-                    container.appendChild(square); container.appendChild(label);
-                }
+                    const label = document.createElement('div');
+                    label.className = 'bg-white/95 backdrop-blur-xs px-2 py-1 rounded-lg shadow-xs border border-gray-200 text-[11px] font-bold text-gray-800 whitespace-nowrap';
+                    label.innerHTML = `${person.name} <span class="text-[9px] text-gray-400 font-normal">(ผัง ${layoutNum})</span>`;
 
-                canvas.appendChild(container);
+                    if (person.isPink) {
+                        container.appendChild(label); container.appendChild(square);
+                    } else {
+                        container.appendChild(square); container.appendChild(label);
+                    }
 
-                // ระบบลากวางประมวลผลพิกัดรองรับสัมผัส iPad
-                let isDragging = false; let startX, startY;
-                function startDrag(e) {
-                    isDragging = true;
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    startX = clientX - container.offsetLeft;
-                    startY = clientY - container.offsetTop;
-                    container.style.zIndex = 50;
-                }
-                function doDrag(e) {
-                    if (!isDragging) return;
-                    e.preventDefault();
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    let newX = clientX - startX; let newY = clientY - startY;
-                    
-                    container.style.left = newX + 'px'; container.style.top = newY + 'px';
-                    person.x = newX; person.y = newY;
-                }
-                function stopDrag() {
-                    if(!isDragging) return;
-                    isDragging = false; container.style.zIndex = 10;
-                    // บันทึกความเปลี่ยนแปลงพิกัดกลับสู่คลังข้อมูลทันที
-                    localStorage.setItem(currentLayoutKey, JSON.stringify(data));
-                }
+                    canvas.appendChild(container);
 
-                container.addEventListener('mousedown', startDrag);
-                document.addEventListener('mousemove', doDrag);
-                document.addEventListener('mouseup', stopDrag);
-                container.addEventListener('touchstart', startDrag, { passive: false });
-                document.addEventListener('touchmove', doDrag, { passive: false });
-                document.addEventListener('touchend', stopDrag);
+                    // ระบบลากวางประมวลผลพิกัดแบบมัลติเลเยอร์สัมผัส iPad
+                    let isDragging = false; let startX, startY;
+                    function startDrag(e) {
+                        isDragging = true;
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                        startX = clientX - container.offsetLeft;
+                        startY = clientY - container.offsetTop;
+                        container.style.zIndex = 100;
+                    }
+                    function doDrag(e) {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                        let newX = clientX - startX; let newY = clientY - startY;
+                        
+                        container.style.left = newX + 'px'; container.style.top = newY + 'px';
+                        person.x = newX; person.y = newY;
+                    }
+                    function stopDrag() {
+                        if(!isDragging) return;
+                        isDragging = false; container.style.zIndex = 10;
+                        // เซฟพิกัดใหม่บันทึกแยกเข้าฐานข้อมูลผังนั้นโดยตรง
+                        localStorage.setItem(layoutKey, JSON.stringify(data));
+                    }
+
+                    container.addEventListener('mousedown', startDrag);
+                    document.addEventListener('mousemove', doDrag);
+                    document.addEventListener('mouseup', stopDrag);
+                    container.addEventListener('touchstart', startDrag, { passive: false });
+                    document.addEventListener('touchmove', doDrag, { passive: false });
+                    document.addEventListener('touchend', stopDrag);
+                });
             });
         }
 
-        function switchLayout(val) { currentLayoutKey = val; renderCanvas(); }
-        function toggleInputModal() { 
-            const modal = document.getElementById('input-modal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
-                document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
-            }
+        // ปุ่มควบคุม Checkbox ทั้งหมดในคลิกเดียว
+        function toggleAllCheckboxes(status) {
+            checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = status);
+            renderCanvas();
         }
+
+        // คอนโทรลหน้าต่างเปิดรับข้อมูล
+        function openEditModal(key, title) {
+            activeEditKey = key;
+            document.getElementById('modal-target-title').innerText = `📥 แก้ไขข้อมูลรายชื่อ: ${title}`;
+            const data = JSON.parse(localStorage.getItem(key)) || [];
+            document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
+            document.getElementById('input-modal').classList.remove('hidden');
+        }
+        function toggleInputModal() { document.getElementById('input-modal').classList.add('hidden'); }
         function processInputData() {
             const txt = document.getElementById('raw-data-input').value;
-            localStorage.setItem(currentLayoutKey, JSON.stringify(parseRawData(txt)));
+            const layoutNum = activeEditKey.split('_')[1];
+            localStorage.setItem(activeEditKey, JSON.stringify(parseRawData(txt, parseInt(layoutNum))));
             toggleInputModal(); renderCanvas();
         }
-        function clearCurrentLayout() { if(confirm('ต้องการล้างข้อมูลผังนี้ใช่หรือไม่?')) { localStorage.setItem(currentLayoutKey, JSON.stringify([])); renderCanvas(); } }
 
-        // ================== ระบบประมวลผลและการส่งออกไฟล์ (OUTPUT) ==================
-        
+        // ================== ระบบประมวลผลการส่งออกไฟล์ข้อมูลรวมเลเยอร์ ==================
+        function getActiveLayoutNames() {
+            return Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.parentElement.innerText.trim()).join(' & ');
+        }
+
         function exportPNG() {
             html2canvas(canvas, { scale: 2 }).then(img => {
-                const a = document.createElement('a'); a.download = `${selectElement.options[selectElement.selectedIndex].text}.png`;
+                const a = document.createElement('a'); a.download = `ผังรวม_${getActiveLayoutNames()}.png`;
                 a.href = img.toDataURL('image/png'); a.click();
             });
         }
@@ -212,43 +243,51 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]);
                 pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight);
-                pdf.save(`${selectElement.options[selectElement.selectedIndex].text}.pdf`);
+                pdf.save(`ผังรวม_${getActiveLayoutNames()}.pdf`);
             });
         }
 
         function exportExcel() {
-            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
-            const rows = data.map(p => ({ "หมายเลข/ลำดับ": p.id, "ชื่อ - ตำแหน่งภารกิจ": p.name, "พิกัด X": p.x, "พิกัด Y": p.y }));
-            const ws = XLSX.utils.json_to_sheet(rows);
+            const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "รายชื่อผู้ร่วมพิธี");
-            XLSX.writeFile(wb, `${selectElement.options[selectElement.selectedIndex].text}.xlsx`);
+            
+            checkedBoxes.forEach(layoutKey => {
+                const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
+                const rows = data.map(p => ({ "ลำดับ/หมายเลข": p.id, "ชื่อ-ตำแหน่ง": p.name, "รหัสสีฟอร์ม": p.color, "พิกัดแกน X": p.x, "พิกัดแกน Y": p.y }));
+                const ws = XLSX.utils.json_to_sheet(rows);
+                XLSX.utils.book_append_sheet(wb, ws, `ผังที่ ${layoutKey.split('_')[1]}`);
+            });
+            XLSX.writeFile(wb, "รายงานรวมพิกัดกำลังพล_12ผัง.xlsx");
         }
 
         function exportWord() {
-            const data = JSON.parse(localStorage.getItem(currentLayoutKey)) || [];
-            let tableRows = data.map((p, i) => `<tr><td style="border:1px solid #ccc;padding:8px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:8px;">${p.name}</td></tr>`).join('');
-            
+            const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            let combinedContent = "";
+
+            checkedBoxes.forEach(layoutKey => {
+                const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
+                const layoutNum = layoutKey.split('_')[1];
+                let tableRows = data.map(p => `<tr><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:6px;">${p.name}</td><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.color}</td></tr>`).join('');
+                
+                combinedContent += `
+                    <h3>📌 ข้อมูลกำลังพลประจำ: ผังที่ ${layoutNum}</h3>
+                    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">รายชื่อ / ตำแหน่งภารกิจ</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสี</th></tr></thead>
+                        <tbody>${tableRows}</tbody>
+                    </table><hr/>`;
+            });
+
             const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                <head><title>รายงานผัง</title><style>body{font-family:Arial,sans-serif;}</style></head>
-                <body>
-                    <h2>รายงานรายชื่อประจำ: ${selectElement.options[selectElement.selectedIndex].text}</h2>
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:8px;width:15%">ลำดับ</th><th style="border:1px solid #ccc;padding:8px;text-align:left;">รายชื่อ / ตำแหน่ง</th></tr></thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                </body>
+                <body><h2>รายงานข้อมูลรวมระบบผังพื้นที่พิธี ส.1</h2>${combinedContent}</body>
                 </html>`;
 
             const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            a.download = `${selectElement.options[selectElement.selectedIndex].text}.doc`;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = "รายงานผังรวมชุดปฏิบัติการ.doc"; a.click();
         }
 
-        // เริ่มทำงานตัวแรก
+        // เริ่มทำงานวาดโครงสร้างแรกบนหน้าจอ iPad
         renderCanvas();
     </script>
 </body>
