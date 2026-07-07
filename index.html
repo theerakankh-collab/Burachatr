@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>โปรแกรมจัดผังต้อนรับ บก.ส.1</title>
+    <title>โปรแกรมจัดผังต้อนรับ บก.ส.1 (12 ผังพื้นที่)</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -13,12 +13,29 @@
 </head>
 <body class="bg-slate-100 w-screen h-screen flex flex-col p-4 font-sans select-none">
 
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex justify-between items-center shrink-0">
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shrink-0">
         <div>
-            <h1 class="text-lg font-bold text-gray-800">ผังการต้อนรับ บริเวณ หน้า บก.ส.1</h1>
-            <p class="text-xs text-gray-500">ลากวางบล็อกสี่เหลี่ยมเพื่อจัดตำแหน่ง รองรับการสัมผัสบน iPad เต็มรูปแบบ</p>
+            <h1 id="layout-title" class="text-lg font-bold text-gray-800">ผังการต้อนรับ บริเวณ หน้า บก.ส.1 (ผังที่ 1)</h1>
+            <p class="text-xs text-gray-500">เลือกผังที่ต้องการจากเมนูด้านขวา (รองรับ 12 ผัง) ลากวางบล็อกสี่เหลี่ยมเพื่อจัดตำแหน่งได้อิสระ</p>
         </div>
-        <span class="bg-blue-50 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-blue-200">v1.0 สมบูรณ์</span>
+        
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <label for="layout-select" class="text-xs font-bold text-gray-600 whitespace-nowrap">📍 เลือกพื้นที่:</label>
+            <select id="layout-select" onchange="switchLayout(this.value)" class="bg-slate-50 border border-gray-300 text-gray-800 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full sm:w-56 p-2 font-semibold">
+                <option value="area1">ผังที่ 1 (หน้า บก.ส.1)</option>
+                <option value="area2">ผังที่ 2</option>
+                <option value="area3">ผังที่ 3</option>
+                <option value="area4">ผังที่ 4</option>
+                <option value="area5">ผังที่ 5</option>
+                <option value="area6">ผังที่ 6</option>
+                <option value="area7">ผังที่ 7</option>
+                <option value="area8">ผังที่ 8</option>
+                <option value="area9">ผังที่ 9</option>
+                <option value="area10">ผังที่ 10</option>
+                <option value="area11">ผังที่ 11</option>
+                <option value="area12">ผังที่ 12</option>
+            </select>
+        </div>
     </div>
 
     <div id="canvas" class="flex-1 bg-white border border-gray-200 rounded-2xl relative overflow-hidden shadow-inner">
@@ -27,17 +44,16 @@
 
     <div class="mt-3 p-3 bg-white rounded-xl shadow-sm flex gap-3 justify-center shrink-0 z-50">
         <button onclick="exportToPNG()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm px-5 py-2 rounded-lg shadow-sm active:scale-95 transition-transform flex items-center gap-2">
-            📷 บันทึกเป็นรูปภาพ (PNG)
+            📷 บันทึกผังนี้เป็นรูปภาพ (PNG)
         </button>
-        <button onclick="resetLayout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm px-5 py-2 rounded-lg active:scale-95 transition-transform">
-            🔄 รีเซ็ตตำแหน่งเริ่มต้น
+        <button onclick="resetCurrentLayout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm px-5 py-2 rounded-lg active:scale-95 transition-transform">
+            🔄 รีเซ็ตผังนี้ใหม่
         </button>
     </div>
 
     <script>
-        // ข้อมูลตำแหน่งตัวเลขและรายชื่อทั้งหมดอ้างอิงตามภาพตัวอย่างสี่เหลี่ยมจัตุรัส
-        const defaultPersonnel = [
-            // ฝั่งผู้บังคับบัญชาและหน่วยขึ้นตรง (สีฟ้า)
+        // ข้อมูลกำลังพลชุดเริ่มต้น (ใช้เป็นค่า Default สำหรับผังเปล่า)
+        const defaultPersonnelList = [
             { id: '10', name: 'ผบ.พัน.นร.รร.ส.สส.', color: 'bg-[#00a2e8]', x: 620, y: 40 },
             { id: '9', name: 'ผบ.พัน.ส.ชบช.เขตหลัง', color: 'bg-[#00a2e8]', x: 620, y: 100 },
             { id: '8', name: 'เสธ.ส.1', color: 'bg-[#00a2e8]', x: 620, y: 160 },
@@ -47,8 +63,6 @@
             { id: '4', name: 'รอง ผบ.ส.1(2)', color: 'bg-[#00a2e8]', x: 620, y: 400 },
             { id: '3', name: 'รอง ผบ.ส.1(1)', color: 'bg-[#00a2e8]', x: 620, y: 460 },
             { id: '2', name: 'ผบ.ส.1', color: 'bg-[#00a2e8]', x: 300, y: 460 },
-            
-            // ฝั่งเจ้าหน้าที่/ผู้ติดตาม (สีชมพู)
             { id: '9', name: 'คุณภัสร์ชลีรณณ์(แอมป์)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 100 },
             { id: '8', name: 'น.ท.หญิงจุฑามาศ', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 160 },
             { id: '7', name: 'คุณเกวลิน(เกว)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 220 },
@@ -57,37 +71,51 @@
             { id: '4', name: 'คุณกฤตานนดา(ฝน)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 400 },
             { id: '3', name: 'คุณศรินทรา(แก้ว)', color: 'bg-[#ff3399]', isPink: true, x: 400, y: 460 },
             { id: '2', name: 'คุณพัชมณฑ์(น้ำหวาน)', color: 'bg-[#ff3399]', isPink: true, x: 80, y: 460 },
-            
-            // นายทหารเวร (สีเขียว)
             { id: '1', name: 'นายทหารเวร ส.1', color: 'bg-[#70c14a]', x: 300, y: 520 },
-            
-            // หน่วยสนับสนุนอื่นๆ (สีม่วง)
             { id: '', name: 'คุณจารุวรรณ(พี่หนิง)', color: 'bg-[#bc00dd]', isPurple: true, x: 300, y: 590 }
         ];
 
+        // 1. คลังข้อมูลรองรับครบ 12 ผัง (ผังที่ 1 ล็อกพิกัดตามรูปเดิม ส่วนผังที่ 2-12 ตั้งค่าเริ่มต้นไว้ให้ลากวางใหม่)
+        const layoutsData = {
+            area1: { title: "ผังการต้อนรับ บริเวณ หน้า บก.ส.1 (ผังที่ 1)", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area2: { title: "พื้นที่จัดผังที่ 2", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area3: { title: "พื้นที่จัดผังที่ 3", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area4: { title: "พื้นที่จัดผังที่ 4", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area5: { title: "พื้นที่จัดผังที่ 5", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area6: { title: "พื้นที่จัดผังที่ 6", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area7: { title: "พื้นที่จัดผังที่ 7", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area8: { title: "พื้นที่จัดผังที่ 8", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area9: { title: "พื้นที่จัดผังที่ 9", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area10: { title: "พื้นที่จัดผังที่ 10", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area11: { title: "พื้นที่จัดผังที่ 11", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) },
+            area12: { title: "พื้นที่จัดผังที่ 12", personnel: JSON.parse(JSON.stringify(defaultPersonnelList)) }
+        };
+
+        let currentLayoutKey = 'area1';
         const canvas = document.getElementById('canvas');
+        const layoutTitleElement = document.getElementById('layout-title');
 
-        function renderElements(data) {
+        // 2. ฟังก์ชันวาดและควบคุมวัตถุบนกระดาน
+        function renderLayout(layoutKey) {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
+            
+            const currentLayout = layoutsData[layoutKey];
+            layoutTitleElement.innerText = currentLayout.title;
 
-            data.forEach(person => {
+            currentLayout.personnel.forEach(person => {
                 const container = document.createElement('div');
                 container.className = 'draggable flex items-center gap-3 select-none z-10';
                 container.style.left = person.x + 'px';
                 container.style.top = person.y + 'px';
 
-                // สี่เหลี่ยมจัตุรัสแสดงหมายเลข (ตามสั่ง)
                 const square = document.createElement('div');
-                // หากเป็นสีม่วงพี่หนิงที่ไม่มีเลข ให้ทำเป็นสี่เหลี่ยมเปล่าขนาดเท่ากัน
                 square.className = `w-10 h-10 rounded-xl ${person.color} text-white flex items-center justify-center font-bold shadow-md text-sm shrink-0`;
                 square.innerText = person.id;
 
-                // ข้อความชื่อตำแหน่ง
                 const label = document.createElement('div');
                 label.className = 'bg-white/90 backdrop-blur-xs px-3 py-1.5 rounded-lg shadow-sm border border-gray-200 text-xs font-bold text-gray-800 whitespace-nowrap';
                 label.innerText = person.name;
 
-                // จัดเรียงทิศทางไอคอนสี่เหลี่ยม: หากเป็นบล็อกฝั่งชมพูให้สี่เหลี่ยมอยู่ขวา ชื่ออยู่ซ้าย ตามแบบรูปเป๊ะๆ
                 if (person.isPink) {
                     container.appendChild(label);
                     container.appendChild(square);
@@ -98,7 +126,7 @@
 
                 canvas.appendChild(container);
 
-                // ระบบควบคุมการ Drag & Drop บน iPad หน้าจอสัมผัส
+                // ระบบลากวาง (Drag & Drop) สำหรับหน้าจอสัมผัส iPad / โทรศัพท์มือถือ
                 let isDragging = false;
                 let startX, startY;
 
@@ -122,7 +150,6 @@
                     let newX = clientX - startX;
                     let newY = clientY - startY;
 
-                    // ล็อกขอบเขตไม่ให้ลากหลุดออกนอกตารางกระดาน
                     const maxW = canvas.clientWidth - container.clientWidth;
                     const maxH = canvas.clientHeight - container.clientHeight;
                     newX = Math.max(10, Math.min(newX, maxW - 10));
@@ -130,6 +157,10 @@
 
                     container.style.left = newX + 'px';
                     container.style.top = newY + 'px';
+                    
+                    // บันทึกค่าตำแหน่งพิกัดลงในผังพื้นที่นั้นๆ ชั่วคราว
+                    person.x = newX;
+                    person.y = newY;
                 }
 
                 function stopDrag() {
@@ -147,27 +178,39 @@
             });
         }
 
-        // ฟังก์ชันสั่ง Export พื้นที่จัดผังออกมาเป็นรูปภาพบันทึกลงเครื่อง
+        // 3. ฟังก์ชันสลับผัง
+        function switchLayout(layoutKey) {
+            currentLayoutKey = layoutKey;
+            renderLayout(layoutKey);
+        }
+
+        // ฟังก์ชันสั่ง Export พื้นที่จัดผังเป็นรูปภาพ PNG
         function exportToPNG() {
-            const toolBar = document.querySelector('.mt-3');
-            toolBar.style.display = 'none'; // ซ่อนปุ่มกดชั่วคราวขณะถ่ายภาพ
+            const uiHeader = document.querySelector('.shrink-0');
+            const uiFooter = document.querySelector('.mt-3');
+            
+            uiHeader.style.visibility = 'hidden';
+            uiFooter.style.visibility = 'hidden';
             
             html2canvas(document.body, { scale: 2 }).then(canvasImage => {
                 const link = document.createElement('a');
-                link.download = 'ผังการต้อนรับ_หน้า_บก.ส.1.png';
+                const titleText = layoutsData[currentLayoutKey].title;
+                link.download = `${titleText}.png`;
                 link.href = canvasImage.toDataURL('image/png');
                 link.click();
-                toolBar.style.display = 'flex'; // ดึงปุ่มกดกลับมา
+                
+                uiHeader.style.visibility = 'visible';
+                uiFooter.style.visibility = 'visible';
             });
         }
 
-        // ฟังก์ชันรีเซ็ตกลับค่าตำแหน่งเดิม
-        function resetLayout() {
-            renderElements(defaultPersonnel);
+        // รีเซ็ตผังปัจจุบัน
+        function resetCurrentLayout() {
+            location.reload();
         }
 
-        // สั่งรันครั้งแรกเมื่อโหลดหน้าเว็บ
-        renderElements(defaultPersonnel);
+        // รันหน้าจอเริ่มต้น
+        renderLayout(currentLayoutKey);
     </script>
 </body>
 </html>
