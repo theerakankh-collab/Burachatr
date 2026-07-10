@@ -48,17 +48,7 @@
                         <button onclick="toggleAllCheckboxes(false)" class="text-[10px] text-gray-400 font-bold hover:underline">ล้าง</button>
                     </div>
                 </div>
-                <div id="checkbox-container" class="space-y-1 flex-1 pr-1">
-                    </div>
-            </div>
-
-            <div id="mini-map-container" class="bg-slate-900 border border-slate-800 rounded-2xl p-3 h-48 flex flex-col shadow-md hidden">
-                <div class="text-[11px] font-bold text-slate-400 mb-1 flex justify-between items-center">
-                    <span>🗺️ ผังแสดงตำแหน่งขนาดเล็ก (Mini-Map)</span>
-                    <span class="text-[9px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">ย่อส่วน</span>
-                </div>
-                <div class="flex-1 bg-slate-950 rounded-lg relative overflow-hidden border border-slate-800" id="mini-map-canvas">
-                    </div>
+                <div id="checkbox-container" class="space-y-1 flex-1 pr-1"></div>
             </div>
         </div>
         
@@ -116,8 +106,6 @@
         let activeEditKey = "";
         const canvas = document.getElementById('canvas');
         const checkboxContainer = document.getElementById('checkbox-container');
-        const miniMapCanvas = document.getElementById('mini-map-canvas');
-        const miniMapContainer = document.getElementById('mini-map-container');
 
         function parseRawData(text, shiftFactor) {
             let startY = 40;
@@ -154,23 +142,9 @@
             checkboxContainer.appendChild(row);
         });
 
-        // ฟังก์ชันวาดหน้าจอหลัก ร่วมกับการประมวลผล Mini-Map ย่อส่วนแบบ Real-time
         function renderCanvas() {
             canvas.querySelectorAll('.draggable').forEach(el => el.remove());
-            miniMapCanvas.innerHTML = ""; // เคลียร์จุดย่อส่วนเก่าออก
-            
             const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-
-            // ซ่อน/แสดง บล็อก Mini-Map อัตโนมัติตามการติ๊กเลือก
-            if (checkedBoxes.length > 0) {
-                miniMapContainer.classList.remove('hidden');
-            } else {
-                miniMapContainer.classList.add('hidden');
-            }
-
-            // คำนวณอัตราส่วนการย่อสำหรับการวาด Mini-Map (สมมติกระดานจริงกว้างประมาณ 1000px ย่อเหลือพื้นที่แสดงผลจริง)
-            const scaleX = 0.22;
-            const scaleY = 0.22;
 
             checkedBoxes.forEach(layoutKey => {
                 const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
@@ -178,7 +152,6 @@
                 const missionName = cbElement ? cbElement.parentElement.innerText.trim() : "";
 
                 data.forEach((person) => {
-                    // --- 1. วาดลงกระดานหลักด้านขวา ---
                     const container = document.createElement('div');
                     container.className = 'draggable flex items-center gap-2 select-none z-10 bg-white/40 rounded-xl p-0.5 border border-transparent hover:border-blue-500';
                     container.style.left = person.x + 'px';
@@ -200,19 +173,6 @@
                     }
                     canvas.appendChild(container);
 
-                    // --- 2. วาดลงโครงสร้าง Mini-Map (ผังย่อส่วนไม่แสดงรายชื่อด้านใน) ---
-                    const dot = document.createElement('div');
-                    dot.className = "absolute rounded-md text-white flex items-center justify-center font-bold text-[8px] shadow-xs select-none pointer-events-none";
-                    dot.style.width = "16px";
-                    dot.style.height = "16px";
-                    dot.style.backgroundColor = person.color;
-                    // แปลงพิกัดสเกลย่อส่วนลงจอเล็ก
-                    dot.style.left = (person.x * scaleX) + 'px';
-                    dot.style.top = (person.y * scaleY) + 'px';
-                    dot.innerText = person.id; // แสดงเฉพาะรหัสหมายเลขลำดับ
-                    miniMapCanvas.appendChild(dot);
-
-                    // ระบบลากวางบน iPad
                     let isDragging = false; let startX, startY;
                     function startDrag(e) {
                         isDragging = true;
@@ -230,10 +190,6 @@
                         let newX = clientX - startX; let newY = clientY - startY;
                         container.style.left = newX + 'px'; container.style.top = newY + 'px';
                         person.x = newX; person.y = newY;
-
-                        // เลื่อนจุด Mini-Map ตามการลากแบบเรียลไทม์
-                        dot.style.left = (newX * scaleX) + 'px';
-                        dot.style.top = (newY * scaleY) + 'px';
                     }
                     function stopDrag() {
                         if(!isDragging) return;
@@ -251,16 +207,14 @@
             });
         }
 
-        // 🟢 ฟังก์ชันนำเข้าข้อมูล Excel ผ่านแถบด้านบนสุด
         function importExcelFromTop(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // ตรวจสอบว่าในปัจจุบันผู้ใช้เลือกผังใดอยู่ (เลือกผังแรกที่ติ๊กถูก)
             const activeCheckbox = checkboxContainer.querySelector('input[type="checkbox"]:checked');
             if(!activeCheckbox) {
                 alert('กรุณาติ๊กเลือกเครื่องหมายถูกหน้าผังภารกิจที่ต้องการนำเข้าข้อมูลก่อนครับ!');
-                event.target.value = ''; // ล้างไฟล์ออก
+                event.target.value = '';
                 return;
             }
 
@@ -285,7 +239,6 @@
                     return;
                 }
 
-                // ดึงข้อมูลจัดเข้าฟอร์แมต
                 const textFormatted = jsonData.map(row => {
                     const id = row['หมายเลข'] || row['id'] || row['ID'] || '';
                     const name = row['ชื่อ'] || row['name'] || row['Name'] || '';
@@ -293,11 +246,10 @@
                     return `${id},${name},${color}`;
                 }).join('\n');
 
-                // บันทึกเข้าฐานข้อมูลผังนั้นโดยตรงและเรนเดอร์ใหม่
                 localStorage.setItem(targetLayoutKey, JSON.stringify(parseRawData(textFormatted, 1)));
                 renderCanvas();
                 alert(`นำเข้าข้อมูลลงผัง "${targetMissionName}" เรียบร้อยแล้วครับ!`);
-                event.target.value = ''; // เคลียร์ช่องอินพุต
+                event.target.value = '';
             };
             reader.readAsArrayBuffer(file);
         }
@@ -323,7 +275,6 @@
             toggleInputModal(); renderCanvas();
         }
 
-        // ================== ระบบส่งออกรายงาน ==================
         function getSelectedMissionsName() { const checkedCount = checkboxContainer.querySelectorAll('input[type="checkbox"]:checked').length; return checkedCount === 1 ? checkboxContainer.querySelector('input[type="checkbox"]:checked').parentElement.innerText.trim() : `รวม_${checkedCount}_ภารกิจ`; }
         function exportPNG() { html2canvas(canvas, { scale: 2 }).then(img => { const a = document.createElement('a'); a.download = `ผัง_${getSelectedMissionsName()}.png`; a.href = img.toDataURL('image/png'); a.click(); }); }
         function exportPDF() { html2canvas(canvas, { scale: 1.5 }).then(imgCanvas => { const { jsPDF } = window.jspdf; const pdf = new jsPDF('l', 'px', [canvas.clientWidth, canvas.clientHeight]); pdf.addImage(imgCanvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.clientWidth, canvas.clientHeight); pdf.save(`ผังภารกิจ_${getSelectedMissionsName()}.pdf`); }); }
