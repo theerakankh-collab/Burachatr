@@ -6,50 +6,37 @@
 }
 
 body {
-    background-color: #f5f7fa;
+    background-color: #f0f4f8;
     color: #333;
     padding: 20px;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
     background: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     padding: 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-/* ส่วนหัวของระบบ */
+/* Header */
 .header-section {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #edf2f7;
+    border-bottom: 2px solid #e2e8f0;
     padding-bottom: 16px;
     flex-wrap: wrap;
     gap: 16px;
 }
 
-.title-area h1 {
-    font-size: 20px;
-    color: #1a202c;
-    margin-bottom: 4px;
-}
-
-.title-area p {
-    font-size: 13px;
-    color: #718096;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
+.title-area h1 { font-size: 22px; color: #1a202c; }
+.title-area p { font-size: 13px; color: #718096; margin-top: 4px; }
+.action-buttons { display: flex; gap: 8px; }
 
 .btn {
     padding: 8px 16px;
@@ -57,18 +44,16 @@ body {
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     transition: all 0.2s;
 }
-
-.btn-excel-import { background-color: #e2e8f0; color: #4a5568; }
+.btn-excel-import { background-color: #edf2f7; color: #4a5568; border: 1px solid #cbd5e1; }
 .btn-png { background-color: #e53e3e; color: white; }
-.btn-pdf { background-color: #c53030; color: white; }
 .btn-excel { background-color: #2f855a; color: white; }
 .btn-word { background-color: #2b6cb0; color: white; }
 .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-/* ================= ส่วนเลือกผังภารกิจ (บน) ================= */
+/* Selection Layout (บน) */
 .top-selection-section {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -84,56 +69,31 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 6px;
 }
 
-.selection-controls {
-    font-size: 13px;
-}
-.selection-controls a {
-    color: #3182ce;
-    text-decoration: none;
-    margin-left: 8px;
-}
+.selection-controls a { color: #3182ce; text-decoration: none; margin-left: 8px; font-size: 13px; }
 
 .checkbox-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    max-height: 180px;
-    overflow-y: auto;
-    padding-right: 8px;
+    gap: 10px;
 }
 
 .checkbox-item {
     display: flex;
     align-items: center;
     background: white;
-    padding: 10px 12px;
+    padding: 10px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
     cursor: pointer;
     font-size: 14px;
-    transition: border-color 0.2s;
 }
+.checkbox-item input { margin-right: 8px; width: 16px; height: 16px; accent-color: #2b6cb0; }
 
-.checkbox-item:hover {
-    border-color: #94a3b8;
-}
-
-.checkbox-item input {
-    margin-right: 10px;
-    width: 16px;
-    height: 16px;
-    accent-color: #3182ce;
-}
-
-/* ================= ส่วนแสดงผลกริดการ์ด (ล่าง) ================= */
-.bottom-grid-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
+/* Grid View (ล่าง) */
 .selected-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -141,60 +101,54 @@ body {
 }
 
 .grid-card {
-    background: white;
+    background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-left: 5px solid #3182ce;
+    border-left: 5px solid #2b6cb0;
     border-radius: 8px;
     padding: 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-.grid-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
+.grid-card h3 { font-size: 15px; color: #2d3748; margin-bottom: 8px; }
+.card-status { font-size: 12px; color: #2f855a; background: #f0fff4; padding: 2px 8px; border-radius: 12px; display: inline-block; width: fit-content; }
+.card-actions { display: flex; justify-content: flex-end; border-top: 1px solid #edf2f7; padding-top: 8px; margin-top: 8px; }
 
-.card-content h3 {
-    font-size: 15px;
-    color: #2d3748;
-    margin-bottom: 6px;
-    line-height: 1.4;
-}
+.divider { border: 0; height: 1px; background: #e2e8f0; margin: 10px 0; }
 
-.card-status {
-    display: inline-block;
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: #ebf8ff;
-    color: #2b6cb0;
-    font-weight: 500;
-}
+/* โซนระบบจัดการผังที่นั่งเก้าอี้ */
+.seat-management-section { background: #582870; color: white; border-radius: 8px; padding: 20px; }
+.seat-management-section .section-title { color: white; border-color: rgba(255,255,255,0.2); }
+.grid-config-bar { display: flex; gap: 15px; align-items: center; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
+.grid-config-bar input { width: 60px; padding: 4px; border-radius: 4px; border: none; text-align: center; }
 
-.card-actions {
+.visual-seat-wrapper { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; margin-bottom: 20px; overflow-x: auto; }
+.altar-row { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.altar-box { background: #ffffff; color: #582870; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+
+.visual-seat-grid { display: grid; gap: 10px; justify-content: center; }
+.seat-unit {
+    background: #ffffff;
+    color: #333;
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+    min-height: 85px;
     display: flex;
-    justify-content: flex-end;
-    border-top: 1px solid #edf2f7;
-    padding-top: 10px;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+.seat-unit img { width: 24px; margin: 0 auto; }
+.seat-unit .seat-label { font-size: 11px; font-weight: bold; color: #2b6cb0; }
+.seat-unit .seat-name { font-size: 10px; color: #555; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seat-unit .seat-pos { font-size: 9px; color: #aaa; }
 
-.btn-edit {
-    background: none;
-    border: none;
-    color: #4a5568;
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.btn-edit:hover {
-    color: #3182ce;
-}
-
+/* ตารางข้อมูลด้านล่างสุด */
+.table-container { background: white; color: #333; border-radius: 6px; padding: 15px; margin-top: 20px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th, .data-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+.data-table th { background: #2b6cb0; color: white; }
+.data-table tr:nth-child(even) { background: #f7fafc; }
