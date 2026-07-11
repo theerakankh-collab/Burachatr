@@ -1,1 +1,200 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ส่วนหัวของระบบ */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #edf2f7;
+    padding-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.title-area h1 {
+    font-size: 20px;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.title-area p {
+    font-size: 13px;
+    color: #718096;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-excel-import { background-color: #e2e8f0; color: #4a5568; }
+.btn-png { background-color: #e53e3e; color: white; }
+.btn-pdf { background-color: #c53030; color: white; }
+.btn-excel { background-color: #2f855a; color: white; }
+.btn-word { background-color: #2b6cb0; color: white; }
+.btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* ================= ส่วนเลือกผังภารกิจ (บน) ================= */
+.top-selection-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selection-controls {
+    font-size: 13px;
+}
+.selection-controls a {
+    color: #3182ce;
+    text-decoration: none;
+    margin-left: 8px;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    background: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.checkbox-item:hover {
+    border-color: #94a3b8;
+}
+
+.checkbox-item input {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    accent-color: #3182ce;
+}
+
+/* ================= ส่วนแสดงผลกริดการ์ด (ล่าง) ================= */
+.bottom-grid-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.selected-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.grid-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #3182ce;
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s;
+}
+
+.grid-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card-content h3 {
+    font-size: 15px;
+    color: #2d3748;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.card-status {
+    display: inline-block;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #ebf8ff;
+    color: #2b6cb0;
+    font-weight: 500;
+}
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid #edf2f7;
+    padding-top: 10px;
+}
+
+.btn-edit {
+    background: none;
+    border: none;
+    color: #4a5568;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-edit:hover {
+    color: #3182ce;
+}
 
