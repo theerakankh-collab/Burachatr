@@ -2,228 +2,61 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ระบบบริหารจัดการผังต้อนรับและภารกิจ ส.1</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <style>
-        body { overflow: hidden; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-100 w-screen h-screen flex flex-col p-4 font-sans select-none">
+<body>
 
-    <div class="bg-white p-4 rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shrink-0">
-        <div>
-            <h1 class="text-xl font-bold text-gray-800">ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</h1>
-            <p class="text-xs text-gray-500 mt-1">เลือก Checkbox ผังภารกิจที่ต้องการจัดการข้อมูล หรือใช้ปุ่มด้านขวาในการส่งออกรายงาน</p>
-        </div>
+    <div class="container">
         
-        <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            <div class="bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 flex items-center gap-2">
-                <label class="text-xs font-bold text-emerald-800 whitespace-nowrap">📥 นำเข้า Excel:</label>
-                <input type="file" id="top-excel-input" accept=".xlsx, .xls" onchange="importExcelFromTop(event)" class="text-[11px] text-gray-600 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[11px] file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer max-w-[180px]" />
+        <header class="header-section">
+            <div class="title-area">
+                <h1>ระบบควบคุมและจัดผังภารกิจร่วมพิธี ส.1</h1>
+                <p>เลือก Checkbox เพื่อจัดการผัง หรือใช้ระบบนำเข้า Excel ด้านขวาเพื่ออัปเดตข้อมูล</p>
             </div>
-
-            <div class="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-gray-200">
-                <span class="text-xs font-bold text-gray-500 mx-1">💾 ส่งออก:</span>
-                <button onclick="exportExcel()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-medium text-xs px-3 py-2 rounded-lg shadow-sm">Excel</button>
-                <button onclick="exportWord()" class="bg-blue-700 hover:bg-blue-800 text-white font-medium text-xs px-3 py-2 rounded-lg shadow-sm">Word</button>
+            <div class="action-buttons">
+                <button class="btn btn-excel-import">📥 นำเข้า Excel</button>
+                <button class="btn btn-png">PNG</button>
+                <button class="btn btn-pdf">PDF</button>
+                <button class="btn btn-excel">Excel</button>
+                <button class="btn btn-word">Word</button>
             </div>
-        </div>
-    </div>
+        </header>
 
-    <div class="flex-1 bg-white border border-gray-200 rounded-2xl p-6 flex flex-col overflow-y-auto shadow-sm">
-        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
-            <h2 class="text-base font-bold text-gray-700 flex items-center gap-2">📋 รายการผังภารกิจ / พิธีการทั้งหมด</h2>
-            <div class="flex gap-3">
-                <button onclick="toggleAllCheckboxes(true)" class="text-xs text-blue-600 font-bold hover:underline">เลือกทั้งหมด</button>
-                <button onclick="toggleAllCheckboxes(false)" class="text-xs text-gray-400 font-bold hover:underline">ล้างทั้งหมด</button>
+        <section class="top-selection-section">
+            <div class="section-title">
+                <span>📋 รายการภารกิจ / พิธีการทั้งหมด</span>
+                <div class="selection-controls">
+                    <a href="#" id="selectAll">เลือกทั้งหมด</a>
+                    <a href="#" id="clearAll">ล้าง</a>
+                </div>
             </div>
-        </div>
-        
-        <div id="checkbox-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pr-1"></div>
-    </div>
-
-    <div id="input-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-5 flex flex-col max-h-[80vh]">
-            <h3 id="modal-target-title" class="text-lg font-bold text-gray-900 mb-1">📥 จัดการข้อมูลรายชื่อ</h3>
-            <p class="text-xs text-gray-500 mb-3">รูปแบบข้อมูล: <span class="font-mono bg-slate-100 p-0.5 rounded">เลขที่,ชื่อ-ตำแหน่ง,รหัสสี</span></p>
-            <textarea id="raw-data-input" class="w-full flex-1 border border-gray-300 rounded-xl p-3 font-mono text-xs focus:ring-2 focus:ring-blue-500 outline-none resize-none min-h-[200px]"></textarea>
-            <div class="mt-4 flex justify-end gap-2">
-                <button onclick="toggleInputModal()" class="bg-gray-200 text-gray-700 text-xs font-bold px-4 py-2 rounded-lg">ยกเลิก</button>
-                <button onclick="processInputData()" class="bg-blue-600 text-white text-xs font-bold px-4 py-2 rounded-lg">บันทึกข้อมูล</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const missionList = [
-            "ต้อนรับหน้าพระอนุสาวรีย์", "สักการะพระอนุสาวรีย์", "ถ่ายภาพหน้าพระอนุสาวรีย์",
-            "ต้อนรับหน้า บก.ส.1", "รับเคารพจากแถวทหารต้อนรับ", "ห้องบุรฉัตร", "ห้องประชุม",
-            "ประดับเข็มบุรฉัตร อาคารอเนกประสงค์", "ประดับเข็มบุรฉัตรห้องเกียรติยศ", "ประดับยศ",
-            "รายงายตัวเข้า", "รายงานตัวออก", "ลาอุปสมบท", "ถ่ายภาพหน้า สนง.", "ลงนามสมุดเยี่ยม",
-            "เยี่ยมบุตรพิเศษ ส.1", "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1", "เยี่ยมบุตรพิเศษ ส.1 พัน.101",
-            "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.101", "เยี่ยมบุตรพิเศษ ส.1 พัน.102", "ถ่ายภาพเยี่ยมบุตรพิเศษ ส.1 พัน.102",
-            "เยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง", "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.ส.ซบร.เขตหลัง",
-            "เยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.", "ถ่ายภาพเยี่ยมบุตรพิเศษ พัน.นร.รร.ส.สส.", "พิธีอื่นๆ(……)"
-        ];
-
-        const sampleBaseData = `10,ผบ.พัน.นร.รร.ส.สส.,#00a2e8
-9,ผบ.พัน.ส.ชบช.เขตหลัง,#00a2e8
-8,เสธ.ส.1,#00a2e8
-7,หก.กผสป.สส.,#00a2e8
-6,ผบ.ส.1 พัน.101,#00a2e8
-5,ผบ.ส.1 พัน.102,#00a2e8
-4,รอง ผบ.ส.1(2),#00a2e8
-3,รอง ผบ.ส.1(1),#00a2e8
-2,ผบ.ส.1,#00a2e8
-9,คุณภัสร์ชลีรณณ์(แอมป์),#ff3399
-8,น.ท.หญิงจุฑามาศ,#ff3399
-7,คุณเกวลิน(เกว),#ff3399
-6,คุณกฤตพร(แพร),#ff3399
-5,คุณอังคนา(มุ่ย),#ff3399
-4,คุณกฤตานนดา(ฝน),#ff3399
-3,คุณศรินทรา(แก้ว),#ff3399
-2,คุณพัชมณฑ์(น้ำหวาน),#ff3399
-1,นายทหารเวร ส.1,#70c14a
-,คุณจารุวรรณ(พี่หนิง),#bc00dd`;
-
-        let activeEditKey = "";
-        const checkboxContainer = document.getElementById('checkbox-container');
-
-        function parseRawData(text, shiftFactor) {
-            let startY = 40;
-            return text.split('\n').filter(line => line.trim() !== '').map((line, index) => {
-                const parts = line.split(',');
-                const isPink = parts[2]?.trim() === '#ff3399';
-                return {
-                    id: parts[0]?.trim() || '',
-                    name: parts[1]?.trim() || '',
-                    color: parts[2]?.trim() || '#00a2e8',
-                    isPink: isPink,
-                    x: isPink ? 380 : 560 + (shiftFactor * 5 % 60),
-                    y: (startY + (index * 42) + (shiftFactor * 5)) % 540
-                };
-            });
-        }
-
-        // สร้างรายการการ์ดผังภารกิจ
-        missionList.forEach((missionName, index) => {
-            const key = `mission_layout_${index + 1}`;
-            if (!localStorage.getItem(key)) {
-                const initialText = (index < 1) ? sampleBaseData : `1,กำลังพลหลักภารกิจ (${missionName}),#70c14a`;
-                localStorage.setItem(key, JSON.stringify(parseRawData(initialText, index)));
-            }
-            const isChecked = index === 0 ? 'checked' : '';
-            const row = document.createElement('div');
-            row.className = "flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 hover:border-blue-400 transition-all shadow-xs";
-            row.innerHTML = `
-                <label class="flex items-center gap-3 cursor-pointer w-full select-none text-xs font-bold text-gray-700 pr-2">
-                    <input type="checkbox" value="${key}" ${isChecked} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 shrink-0">
-                    <span class="break-words">${missionName}</span>
-                </label>
-                <button onclick="openEditModal('${key}', '${missionName}')" class="text-gray-400 hover:text-blue-600 text-xs font-bold p-1 shrink-0 flex items-center gap-0.5 bg-white px-2 py-1 rounded-md border border-gray-200">⚙️ ตั้งค่า</button>
-            `;
-            checkboxContainer.appendChild(row);
-        });
-
-        function importExcelFromTop(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const activeCheckbox = checkboxContainer.querySelector('input[type="checkbox"]:checked');
-            if(!activeCheckbox) {
-                alert('กรุณาติ๊กเลือกเครื่องหมายถูกหน้าผังภารกิจที่ต้องการนำเข้าข้อมูลก่อนครับ!');
-                event.target.value = '';
-                return;
-            }
-
-            const targetLayoutKey = activeCheckbox.value;
-            const targetMissionName = activeCheckbox.parentElement.innerText.trim();
-
-            if(!confirm(`คุณต้องการนำเข้าข้อมูล Excel นี้ลงในผัง "${targetMissionName}" ใช่หรือไม่?`)) {
-                event.target.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                
-                if(jsonData.length === 0) {
-                    alert('ไม่พบข้อมูลรายชื่อในไฟล์ Excel หรือหัวตารางไม่ถูกต้อง');
-                    return;
-                }
-
-                const textFormatted = jsonData.map(row => {
-                    const id = row['หมายเลข'] || row['id'] || row['ID'] || '';
-                    const name = row['ชื่อ'] || row['name'] || row['Name'] || '';
-                    const color = row['สี'] || row['color'] || row['Color'] || '#00a2e8';
-                    return `${id},${name},${color}`;
-                }).join('\n');
-
-                localStorage.setItem(targetLayoutKey, JSON.stringify(parseRawData(textFormatted, 1)));
-                alert(`นำเข้าข้อมูลลงผัง "${targetMissionName}" เรียบร้อยแล้วครับ!`);
-                event.target.value = '';
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function toggleAllCheckboxes(status) {
-            checkboxContainer.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = status);
-        }
-
-        function openEditModal(key, title) {
-            activeEditKey = key;
-            document.getElementById('modal-target-title').innerText = `📥 จัดการข้อมูล: ${title}`;
-            const data = JSON.parse(localStorage.getItem(key)) || [];
-            document.getElementById('raw-data-input').value = data.map(p => `${p.id},${p.name},${p.color}`).join('\n');
-            document.getElementById('input-modal').classList.remove('hidden');
-        }
-        
-        function toggleInputModal() { document.getElementById('input-modal').classList.add('hidden'); }
-        
-        function processInputData() {
-            const txt = document.getElementById('raw-data-input').value;
-            localStorage.setItem(activeEditKey, JSON.stringify(parseRawData(txt, 1)));
-            toggleInputModal();
-            alert('บันทึกข้อมูลผังเรียบร้อยแล้วครับ');
-        }
-
-        function exportExcel() {
-            const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            if(checkedBoxes.length === 0) { alert('กรุณาเลือกผังอย่างน้อย 1 รายการเพื่อส่งออกครับ'); return; }
             
-            const wb = XLSX.utils.book_new();
-            checkedBoxes.forEach(layoutKey => {
-                const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
-                const ws = XLSX.utils.json_to_sheet(data.map(p => ({ "หมายเลข": p.id, "ชื่อ": p.name, "สี": p.color, "X": p.x, "Y": p.y })));
-                XLSX.utils.book_append_sheet(wb, ws, (cbElement ? cbElement.parentElement.innerText.trim() : "ภารกิจ").substring(0, 25));
-            });
-            XLSX.writeFile(wb, "รายงานผังรายชื่อกำลังพล_ส1.xlsx");
-        }
+            <div class="checkbox-grid">
+                <label class="checkbox-item"><input type="checkbox" checked> ต้อนรับหน้าพระอนุสาวรีย์</label>
+                <label class="checkbox-item"><input type="checkbox" checked> สักการะพระอนุสาวรีย์</label>
+                <label class="checkbox-item"><input type="checkbox"> ถ่ายภาพหน้าพระอนุสาวรีย์</label>
+                <label class="checkbox-item"><input type="checkbox" checked> ต้อนรับหน้า บก.ส.1</label>
+                <label class="checkbox-item"><input type="checkbox"> รับเคารพจากแถวทหารต้อนรับ</label>
+                <label class="checkbox-item"><input type="checkbox"> ห้องบุรฉัตร</label>
+                <label class="checkbox-item"><input type="checkbox"> ห้องประชุม</label>
+                <label class="checkbox-item"><input type="checkbox"> ประดับเข็มบุรฉัตร อาคารอเนกประสงค์</label>
+                <label class="checkbox-item"><input type="checkbox"> ประดับเข็มบุรฉัตรห้องเกียรติยศ</label>
+                <label class="checkbox-item"><input type="checkbox"> ประดับยศ</label>
+            </div>
+        </section>
 
-        function exportWord() {
-            const checkedBoxes = Array.from(checkboxContainer.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
-            if(checkedBoxes.length === 0) { alert('กรุณาเลือกผังอย่างน้อย 1 รายการเพื่อส่งออกครับ'); return; }
+        <section class="bottom-grid-section">
+            <div class="section-title">
+                <span>🗂️ รายชื่อผังที่เลือกดำเนินการ (Grid View)</span>
+            </div>
 
-            let combinedContent = "";
-            checkedBoxes.forEach(layoutKey => {
-                const data = JSON.parse(localStorage.getItem(layoutKey)) || [];
-                const cbElement = checkboxContainer.querySelector(`input[value="${layoutKey}"]`);
-                let tableRows = data.map(p => `<tr><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.id || '-'}</td><td style="border:1px solid #ccc;padding:6px;">${p.name}</td><td style="border:1px solid #ccc;padding:6px;text-align:center;">${p.color}</td></tr>`).join('');
-                combinedContent += `<h3>📌 ภารกิจ: ${cbElement ? cbElement.parentElement.innerText.trim() : ""}</h3><table style="width:100%;border-collapse:collapse;margin-bottom:25px;"><thead><tr style="background:#f2f2f2;"><th style="border:1px solid #ccc;padding:6px;width:15%">หมายเลข</th><th style="border:1px solid #ccc;padding:6px;text-align:left;">ยศ นาม ตำแหน่ง</th><th style="border:1px solid #ccc;padding:6px;width:20%">รหัสสี</th></tr></thead><tbody>${tableRows}</tbody></table><hr/>`;
-            });
-            const blob = new Blob(['\ufeff' + `<html><body><h2>เอกสารรายงานผัง ส.1</h2>${combinedContent}</body></html>`], { type: 'application/msword' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "รายงานผังกำลังพล.doc"; a.click();
-        }
-    </script>
+            <div class="selected-grid"></div>
+        </section>
+
+    </div>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
